@@ -1,0 +1,44 @@
+{
+  "name": "event-planner-plus",
+  "version": "1.0.0",
+  "description": "Una aplicación web para la planificación de eventos",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "keywords": [
+    "event",
+    "planner",
+    "react"
+  ],
+  "author": "Brenda Paola Navarro Alatorre",
+  "license": "Centro de Enseñanza Técnica Industrial",
+  "dependencies": {
+    "@dicebear/avatars": "^4.10.8",
+    "@dicebear/avatars-identicon-sprites": "^4.10.8",
+    "@dicebear/core": "^9.2.2",
+    "firebase": "^10.13.2",
+    "lucide-react": "^0.475.0",
+    "react": "^18.2.0",
+    "react-calendar": "^5.1.0",
+    "react-dom": "^18.2.0",
+    "react-icons": "^5.4.0",
+    "react-router-dom": "^6.28.0",
+    "react-scripts": "^5.0.1"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

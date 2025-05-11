@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Krona+One&family=Montserrat:wght@400;600&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+:root {
+    /* Colores principales */
+    --color-primario: #007bff;
+    --color-secundario: #88A0A8;
+    --color-terciario: #120D31;
+    --color-cuaternario: #F3F5FC;
+    --color-hover: #5C6784;
+    --color-white: #FFFFFF;
+    --color-black: #1F1F1F;
+    --color-footer: #5C6784;
+    --color-red: red;
+    --color-darker-red: #cc0000;
+
+    /* Tipografías */
+    --fuente-montserrat: 'Montserrat', sans-serif;
+    --fuente-krona: 'Krona One', sans-serif;
+    --fuente-inter: 'Inter', sans-serif;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--fuente-inter);
+    background-color: var(--color-cuaternario);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Asegura que el body ocupe toda la altura */
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+* {
+    box-sizing: inherit; /* Aplica a todos los elementos */
+}
+
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Asegura que el contenedor principal tenga al menos la altura total */
+}
+
+.main-content {
+    top: 0;
+    flex: 1; /* Esto hace que el contenido principal ocupe el espacio disponible entre el navbar y el footer */
+    margin-top: 104px;
+}
+
+footer {
+    margin-top: auto; /* Esto empuja el footer al final de la pantalla */
+    width: 100%;
+    /* El padding y estilo del footer puede ir aquí */
+}

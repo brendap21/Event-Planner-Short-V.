@@ -1,0 +1,421 @@
+/************************************
+  CONTENEDORES GENERALES
+************************************/
+
+/* Contenedor principal */
+.register-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  margin: 0;
+  height: auto;
+}
+
+.seccion_izquierda {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  width: 65%;
+  padding: 2rem;
+  box-sizing: border-box;
+  padding-bottom: 5%;
+}
+
+.register-right {
+  width: 35%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.register-right img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/************************************
+  TITULOS DE PRESENTACIÓN
+************************************/
+
+.presentacion__titulo {
+  font-size: 2.5rem;
+  color: var(--color-terciario);
+  font-weight: 800;
+  margin: 1rem 0;
+  margin-top: 5%;
+  font-family: var(--fuente-krona);
+  text-align: center;
+}
+
+.presentacion_subtitulo {
+  font-size: 1.2rem;
+  font-family: var(--fuente-inter);
+  margin: 0.5rem 1rem;
+  text-align: center;
+  color: var(--color-black);
+  margin-bottom: 2%;
+}
+
+/************************************
+  SECCIÓN DE FORMULARIO
+************************************/
+
+.form-section {
+  width: 55%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 3%;
+}
+
+.register-left {
+  background-color: var(--color-white);
+  border-radius: 15px;
+  width: 80%;
+  max-width: 80%;
+  height: auto;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  min-width: 30%;
+  max-width: 100%;
+  padding: 5%;
+  justify-content: center;
+  padding-bottom: 0;
+}
+
+/************************************
+  AJUSTES PARA INFORMACION DE LA CUENTA (CONTENEDOR)
+************************************/
+
+.formContainerAccount {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 70%;
+  max-width: 500px;
+  background: none;
+  box-shadow: none;
+  margin: 0 auto;
+  border-radius: 15px;
+}
+
+.formContainerAccount form {
+  background: none;
+  box-shadow: none;
+  width: 100%;
+  border-radius: 15px;
+}
+
+/* Fieldset segundo formulario */
+#informacion_cuenta {
+  text-align: center;
+  position: relative;
+  padding-right: 3rem;
+  padding-left: 3rem;
+}
+
+#informacion_cuenta legend {
+  display: inline-block;
+  margin: 0 auto;
+  background-color: var(--color-terciario);
+  color: var(--color-white);
+  font-family: var(--fuente-krona);
+  font-size: 1.5rem;
+  padding: 1rem;
+  border-radius: 10px;
+  max-width: 90%;
+  text-align: center;
+}
+
+#informacion_cuenta .email,
+#informacion_cuenta .password,
+#informacion_cuenta .confirm_password {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#informacion_cuenta .email label,
+#informacion_cuenta .password label,
+#informacion_cuenta .confirm_password label {
+  font-family: var(--fuente-montserrat);
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 0.2rem;  
+}
+
+#informacion_cuenta .email input,
+#informacion_cuenta .password input,
+#informacion_cuenta .confirm_password input {
+  margin: 0;
+  line-height: normal;
+  margin-bottom: 0;
+}
+
+/************************************
+  FIELDSET Y LEGEND (Formulario General)
+************************************/
+
+form {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: none;
+  box-shadow: none;
+  align-content: center;
+}
+
+form fieldset {
+  border: 2px solid var(--color-terciario);
+  padding: 2rem;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column; /* El grid va dentro de filas .grid-row */
+  gap: 1rem;
+}
+
+form legend {
+  font-family: var(--fuente-krona);
+  font-size: 1.5rem;
+  text-align: right;
+  border-radius: 10px;
+  max-width: 55%;
+}
+
+/************************************
+  GRID: FILAS Y COLUMNAS (Primer Formulario)
+************************************/
+
+.grid-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 2rem;
+  align-items: start;
+}
+
+.grid-column {
+  display: flex;
+  flex-direction: column;
+}
+
+/************************************
+  LABELS, INPUTS, PLACEHOLDERS (Primer Formulario)
+************************************/
+
+.grid-column input:not([type="radio"]):not([type="checkbox"]),
+.grid-column select {
+  font-size: 1rem;
+  padding: 0.8rem;
+  width: 100%;
+  border-radius: 5px;
+  height: 50px;
+  line-height: 1.3;
+  margin: 0; /* Importante: sin margin para inputs/select */
+}
+
+.grid-column label {
+  text-align: left;
+  font-family: var(--fuente-montserrat);
+  font-weight: bold;
+  margin: 0;
+  margin-bottom: 0.2rem; /* Ajusta aquí para el espacio pequeño */
+}
+
+.grid-column input::placeholder {
+  text-align: left;
+}
+
+.grid-column input:focus {
+  border-color: var(--color-terciario);
+  outline: none;
+  box-shadow: 0 0 5px var(--color-primario);
+  text-align: center;
+}
+
+/************************************
+  FOTO DE PERFIL
+************************************/
+
+.profile-picture-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.profile-picture-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 80px;
+  height: 80px;
+  border: none;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.random-avatar-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  cursor: pointer;
+  border-radius: 15px;
+}
+
+.profile-image,
+.profile-avatar {
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+}
+
+/************************************
+  GÉNERO
+************************************/
+
+.gender-options {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem; /* Espacio entre cada "gender-option" */
+}
+
+.gender-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 0.1rem;
+}
+
+.gender-option input[type="radio"] {
+  margin-bottom: 0.5rem; /* Espacio entre el círculo y el icono/texto */
+}
+
+.gender-option label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem; /* Ajusta el espacio entre icono y círculo */
+}
+
+/************************************
+  ERRORES Y ESTADOS DE INPUT
+************************************/
+
+.error-message {
+  color: var(--color-red);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.error-label {
+  color: var(--color-red);
+}
+
+.error-input {
+  border-color: var(--color-red);
+}
+
+/************************************
+  BOTÓN DE ENVÍO
+************************************/
+
+.submitBtn {
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: auto;
+}
+
+.submitBtn button {
+  background-color: var(--color-terciario);
+  color: var(--color-white);
+  border: none;
+  cursor: pointer;
+  padding: 1rem;
+  font-size: 1.5rem;
+  border-radius: 15px;
+  margin-top: 1rem;
+}
+
+.submitBtn button:hover {
+  background-color: var(--color-hover);
+}
+
+/************************************
+  SWITCH AUTH (ENLACE A LOGIN)
+************************************/
+
+.switch-auth {
+  display: flex;
+  margin-top: 2%;
+}
+
+.switch-auth label {
+  font-family: var(--fuente-montserrat);
+  font-size: 1.2rem;
+  color: var(--color-black);
+}
+
+.switch-auth a {
+  color: var(--color-terciario);
+  text-decoration: none;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-left: 0.3rem; /* Pequeño espacio a la izquierda */
+}
+
+.switch-auth a:hover {
+  text-decoration: underline;
+}
+
+/************************************
+  MEDIA QUERIES
+************************************/
+
+@media (max-width: 768px) {
+  .register-container {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  .seccion_izquierda,
+  .register-right {
+    width: 100%;
+    height: auto;
+  }
+
+  .register-right img {
+    width: 100%;
+    height: auto;
+  }
+
+  /* En pantallas pequeñas, el grid pasa a 1 columna */
+  .grid-row {
+    grid-template-columns: 1fr;
+  }
+
+  .random-avatar-button {
+    margin-left: 1rem; /* Ajusta si deseas más espacio en móviles */
+  }
+}

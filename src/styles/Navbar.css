@@ -1,0 +1,249 @@
+/* Estilo básico del navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background-color: var(--color-terciario); 
+  padding-left: 3rem;
+  padding-right: 3rem;
+  border-bottom: 3px solid var(--color-terciario); 
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  position: fixed;
+  min-height: 6.5rem;
+  overflow-x: none; /* Evita el scroll horizontal */
+  z-index: 10; /* Asegura que la navbar esté encima del contenido */
+}
+
+.navbar__left {
+  display: flex;
+  align-items: center;
+}
+
+.navbar__logo img {
+  height: 40px;
+  margin-left: 1.5rem;
+}
+
+.navbar__links {
+  display: flex;
+  list-style: none;
+  margin-left: 1.5rem; 
+  padding: 0;
+}
+
+.navbar__links li {
+  margin: 0 1.5rem;
+  position: relative;
+  display: flex; /* Usar flexbox para alinear verticalmente */
+  align-items: center; /* Alineación vertical centrada */
+}
+
+.navbar__link {
+  text-decoration: none;
+  color: var(--color-white);
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  transition: color 0.3s ease;
+  font-family: var(--fuente-montserrat);
+  display: flex;
+  align-items: center; /* Alinea el texto y los iconos */
+}
+
+.navbar__link:hover {
+  color: var(--color-primario); 
+}
+
+.navbar__link.active {
+  position: relative;
+}
+
+.navbar__link.active::after {
+  content: '';
+  position: absolute;
+  bottom: -18px; /* Position the line at the bottom of the navbar */
+  left: 0;
+  right: 0;
+  height: 8px; /* Make the line thicker */
+  background-color: rgba(255, 255, 255, 0.8); /* Add transparency */
+  border-radius: 3px; /* Add rounded corners */
+  transition: all 0.3s ease; /* Add a transition effect */
+}
+
+.navbar__link:hover::after {
+  background-color: rgba(255, 255, 255, 1); /* Change color on hover */
+  height: 15px; /* Increase thickness on hover */
+}
+
+.navbar__dropdown-menu .navbar__link.active {
+  border-bottom: none;
+}
+
+.navbar__dropdown {
+  cursor: pointer;
+  position: relative;
+}
+
+.navbar__dropdown-menu {
+  display: none; /* Oculta el menú por defecto */
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: var(--color-secundario);
+  padding: 0.5rem 0;
+  list-style: none;
+  margin: 0;
+  border-radius: 6px;
+  z-index: 20; /* Asegura que el menú desplegable esté encima del contenido */
+  max-height: none; /* Elimina la altura máxima */
+  overflow-y: visible; /* Asegura que no haya scroll vertical */
+}
+
+.show-notifications {
+  display: block; /* Muestra el menú cuando se agrega la clase show-notifications */
+}
+
+.navbar__dropdown-menu li {
+  padding: 0.8rem 1.5rem;
+}
+
+.navbar__dropdown-menu a {
+  color: var(--color-white);
+  font-size: 1.1rem;
+}
+
+.navbar__dropdown-menu a:hover {
+  color: var(--color-terciario); /* Change hover color to tertiary */
+}
+
+.navbar__dropdown:hover .navbar__dropdown-menu {
+  display: block; /* Muestra el menú solo cuando el mouse pasa sobre el contenedor */
+}
+
+/* Estilo de los iconos */
+.icon {
+  margin-right: 8px;
+  font-size: 1.1rem;
+  vertical-align: middle; /* Esto asegura que los iconos se alineen al centro */
+}
+
+.navbar__auth {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.auth-button {
+  background-color: var(--color-white);
+  color: var(--color-terciario);
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+  height: 2.5rem;
+  align-content: center;
+  font-weight: bolder;
+}
+
+.auth-button:hover {
+  background-color: var(--color-hover);
+  color: var(--color-white);
+}
+
+.auth-button.notifications {
+  background: none;
+  color: var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-right: 0; /* Incrementa el margen derecho para mover el botón de notificaciones más a la derecha */
+  border-right: 1px solid var(--color-white); /* Añade una línea vertical blanca a la derecha */
+  padding-right: 1rem; /* Añade espacio a la derecha del botón para la línea */
+  border-radius: 0; /* Asegura que la línea no tenga bordes redondeados */
+}
+
+.auth-button.notifications:hover {
+  color: var(--color-primario);
+}
+
+.notification-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: var(--color-red);
+  color: var(--color-white);
+  border-radius: 50%;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.no-notifications {
+  padding: 0.8rem 1.5rem;
+  color: var(--color-white);
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.notification-item {
+  padding: 0.8rem 1.5rem;
+  color: var(--color-white);
+  font-size: 1.1rem;
+}
+
+.logout {
+  background: none;
+  color: var(--color-white);
+  display: flex; /* Hacer el botón un contenedor flexible */
+  align-items: center; /* Alinea los elementos verticalmente al centro */
+  justify-content: center; /* Centra el contenido horizontalmente */
+}
+
+.logout:hover {
+  background-color: var(--color-red);
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+    height: auto;
+  }
+
+  .navbar__left {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .navbar__links {
+    display: none; /* Oculta el menú de enlaces en dispositivos pequeños */
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 1rem;
+  }
+
+  .navbar__links li {
+    margin: 0.5rem 0;
+  }
+
+  .navbar__auth {
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  /* Mostrar los enlaces de la navbar cuando se hace clic en un botón */
+  .navbar.open .navbar__links {
+    display: flex;
+  }
+}

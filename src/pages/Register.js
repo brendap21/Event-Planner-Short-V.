@@ -1,0 +1,522 @@
+import React, { useState } from 'react';
+import { auth } from '../firebase/firebaseConfig';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '../firebase/firebaseConfig'; // Importa Firestore
+import "../styles/Register.css";
+import { Link, useNavigate } from 'react-router-dom';
+import { createAvatar } from '@dicebear/avatars';
+import * as style from '@dicebear/avatars-identicon-sprites';
+import registerImage from '../assets/REGISTERIMAGE.jpg'; // Importando la imagen
+import { FaRandom, FaMale, FaFemale } from 'react-icons/fa';
+import { useAuth } from '../contexts/AuthContext';
+
+
+
+const Register = () => {
+  const navigate = useNavigate(); // Hook para redirección
+  const { currentUser } = useAuth();
+
+  if (currentUser) {
+    navigate("/"); // Si ya está autenticado, redirige a la página de inicio
+  }
+
+  const [formData, setFormData] = useState({
+    name: '',
+    lastname: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    profilePicture: '',
+    phoneNumber: '',
+    birthDate: '',
+    gender: '',
+    address: {
+      street: '',
+      city: '',
+      state: '',
+      postalCode: ''
+    }
+  });
+
+  const [error, setError] = useState('');
+  const [isEmailValid, setIsEmailValid] = useState(true);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prevFormData => {
+      if (name.includes('address.')) {
+        const addressField = name.split('.')[1];
+        return {
+          ...prevFormData,
+          address: {
+            ...prevFormData.address,
+            [addressField]: value
+          }
+        };
+      } else {
+        return {
+          ...prevFormData,
+          [name]: value
+        };
+      }
+    });
+
+    if (name === 'birthDate') {
+      validateBirthDate(value);
+    }
+    validateForm(); // Llama a la validación aquí para que sea en tiempo real
+  };
+
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({
+          ...formData,
+          profilePicture: reader.result  // Cargar la imagen cargada
+        });
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setError('Por favor, selecciona un archivo de imagen válido.');
+    }
+  };
+
+
+  const generateAvatar = () => {
+    const svg = createAvatar(style, { seed: formData.email });
+    return svg;
+  };
+
+  const generateRandomAvatar = () => {
+    const svg = createAvatar(style, { seed: Math.random().toString() });
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      profilePicture: `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`
+    }));
+  };
+
+  const validateForm = () => {
+    if (!formData.name || !formData.lastname || !formData.email || !formData.password || !formData.confirmPassword) {
+      setError('Todos los campos son obligatorios');
+      return false;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Las contraseñas no coinciden');
+      return false;
+    }
+
+    if (formData.password.length < 8) {
+      setError('La contraseña debe tener al menos 8 caracteres');
+      return false;
+    }
+
+    if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      setIsEmailValid(false);
+      setError('Por favor ingresa un correo electrónico válido');
+      return false;
+    } else {
+      setIsEmailValid(true);
+    }
+
+    setError('');
+    return true;
+  };
+
+
+  const validateBirthDate = (date) => {
+    const today = new Date();
+    const birthDate = new Date(date);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDifference = today.getMonth() - birthDate.getMonth();
+
+    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    if (age < 18) {
+      setError('Debes tener al menos 18 años para registrarte.');
+    } else {
+      setError('');
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (error) return;
+
+    if (validateForm()) {
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+        const user = userCredential.user;
+        console.log('Usuario registrado:', user);
+
+        const profilePic = formData.profilePicture || `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(createAvatar(style, { seed: formData.email }))))}`;
+
+        // Guardar en Firestore
+        await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
+          name: formData.name,
+          lastname: formData.lastname,
+          email: formData.email,
+          phoneNumber: formData.phoneNumber,
+          birthDate: formData.birthDate,
+          gender: formData.gender,
+          address: formData.address,
+          profilePicture: profilePic
+        });
+
+        setSuccessMessage('¡Registro exitoso! Bienvenido a EventPlanner+.');
+        setTimeout(() => {
+          navigate('/'); // Redirige después de 2 segundos
+        }, 2000);
+        setError('');
+
+        setFormData({
+          name: '',
+          lastname: '',
+          email: '',
+          password: '',
+          confirmPassword: '',
+          profilePicture: '',
+          phoneNumber: '',
+          birthDate: '',
+          gender: '',
+          address: { street: '', city: '', state: '', postalCode: '' }
+        });
+
+      } catch (error) {
+        console.error('Error al registrar el usuario:', error.message);
+        setError('Hubo un problema al registrar tu cuenta. Inténtalo nuevamente.');
+      }
+    }
+  };
+
+  const handleImageClick = () => {
+    document.getElementById('profilePicture').click();
+  };
+
+  return (
+    <div className="register-container">
+      <div className="form-section">
+        <h1 className="presentacion__titulo">¡REGÍSTRATE!</h1>
+        <h2 className="presentacion_subtitulo">
+          Ingresa los campos solicitados para crear una cuenta.
+        </h2>
+        {error && <p className="error-message">{error}</p>}
+        {successMessage && <p className="success-message">{successMessage}</p>}
+
+        <div className="register-left">
+          {/* --- PRIMER FORMULARIO: INFORMACIÓN DEL USUARIO --- */}
+          <form onSubmit={handleSubmit}>
+            <div className="container">
+              <fieldset id="informacion_usuario">
+                <legend>INFORMACIÓN DEL USUARIO</legend>
+
+                {/* Fila #1: Foto de Perfil / Género */}
+                <div className="grid-row">
+                  <div className="grid-column">
+                    <label>FOTO DE PERFIL:</label>
+                    <div className="profile-picture-row">
+                      <div
+                        className="profile-picture-container"
+                        onClick={handleImageClick}
+                      >
+                        {formData.profilePicture ? (
+                          <img
+                            src={formData.profilePicture}
+                            alt="Perfil"
+                            className="profile-image"
+                          />
+                        ) : (
+                          <div
+                            dangerouslySetInnerHTML={{ __html: generateAvatar() }}
+                            className="profile-avatar"
+                          ></div>
+                        )}
+                        <input
+                          type="file"
+                          id="profilePicture"
+                          name="profilePicture"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          style={{ display: 'none' }}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={generateRandomAvatar}
+                        className="random-avatar-button"
+                      >
+                        <FaRandom />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="grid-column">
+                    <label>GÉNERO:</label>
+                    <div className="gender-options">
+                      <div className="gender-option">
+                        <input
+                          type="radio"
+                          id="male"
+                          name="gender"
+                          value="male"
+                          checked={formData.gender === 'male'}
+                          onChange={handleChange}
+                        />
+                        <label htmlFor="male">
+                          <FaMale />
+                        </label>
+                      </div>
+                      <div className="gender-option">
+                        <input
+                          type="radio"
+                          id="female"
+                          name="gender"
+                          value="female"
+                          checked={formData.gender === 'female'}
+                          onChange={handleChange}
+                        />
+                        <label htmlFor="female">
+                          <FaFemale />
+                        </label>
+                      </div>
+                      <div className="gender-option">
+                        <input
+                          type="radio"
+                          id="other"
+                          name="gender"
+                          value="other"
+                          checked={formData.gender === 'other'}
+                          onChange={handleChange}
+                        />
+                        <label htmlFor="other">otro</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Fila #2: Nombre / Apellido */}
+                <div className="grid-row">
+                  <div className="grid-column">
+                    <label htmlFor="name">NOMBRE:</label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      placeholder="Name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div className="grid-column">
+                    <label htmlFor="lastname">APELLIDO:</label>
+                    <input
+                      type="text"
+                      id="lastname"
+                      name="lastname"
+                      placeholder="LastName"
+                      value={formData.lastname}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Fila #3: Fecha de Nacimiento / Número de Teléfono */}
+                <div className="grid-row">
+                  <div className="grid-column">
+                    <label htmlFor="birthDate">FECHA DE NACIMIENTO:</label>
+                    <input
+                      type="date"
+                      id="birthDate"
+                      name="birthDate"
+                      placeholder="mm/dd/aaaa"
+                      value={formData.birthDate}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div className="grid-column">
+                    <label htmlFor="phoneNumber">NÚMERO DE TELÉFONO:</label>
+                    <input
+                      type="tel"
+                      id="phoneNumber"
+                      name="phoneNumber"
+                      placeholder="Número de Teléfono"
+                      value={formData.phoneNumber}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Fila #4: Calle / Ciudad */}
+                <div className="grid-row">
+                  <div className="grid-column">
+                    <label htmlFor="address.street">CALLE:</label>
+                    <input
+                      type="text"
+                      id="address.street"
+                      name="address.street"
+                      placeholder="Calle"
+                      value={formData.address.street}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="grid-column">
+                    <label htmlFor="address.city">CIUDAD:</label>
+                    <input
+                      type="text"
+                      id="address.city"
+                      name="address.city"
+                      placeholder="Ciudad"
+                      value={formData.address.city}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+
+                {/* Fila #5: Estado / Código Postal */}
+                <div className="grid-row">
+                  <div className="grid-column">
+                    <label htmlFor="address.state">ESTADO:</label>
+                    <select
+                      id="address.state"
+                      name="address.state"
+                      value={formData.address.state}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="Aguascalientes">Aguascalientes</option>
+                      <option value="Baja California">Baja California</option>
+                      <option value="Baja California Sur">Baja California Sur</option>
+                      <option value="Campeche">Campeche</option>
+                      <option value="Chiapas">Chiapas</option>
+                      <option value="Chihuahua">Chihuahua</option>
+                      <option value="Ciudad de México">Ciudad de México</option>
+                      <option value="Coahuila">Coahuila</option>
+                      <option value="Colima">Colima</option>
+                      <option value="Durango">Durango</option>
+                      <option value="Estado de México">Estado de México</option>
+                      <option value="Guanajuato">Guanajuato</option>
+                      <option value="Guerrero">Guerrero</option>
+                      <option value="Hidalgo">Hidalgo</option>
+                      <option value="Jalisco">Jalisco</option>
+                      <option value="Michoacán">Michoacán</option>
+                      <option value="Morelos">Morelos</option>
+                      <option value="Nayarit">Nayarit</option>
+                      <option value="Nuevo León">Nuevo León</option>
+                      <option value="Oaxaca">Oaxaca</option>
+                      <option value="Puebla">Puebla</option>
+                      <option value="Querétaro">Querétaro</option>
+                      <option value="Quintana Roo">Quintana Roo</option>
+                      <option value="San Luis Potosí">San Luis Potosí</option>
+                      <option value="Sinaloa">Sinaloa</option>
+                      <option value="Sonora">Sonora</option>
+                      <option value="Tabasco">Tabasco</option>
+                      <option value="Tamaulipas">Tamaulipas</option>
+                      <option value="Tlaxcala">Tlaxcala</option>
+                      <option value="Veracruz">Veracruz</option>
+                      <option value="Yucatán">Yucatán</option>
+                      <option value="Zacatecas">Zacatecas</option>
+                    </select>
+                  </div>
+                  <div className="grid-column">
+                    <label htmlFor="address.postalCode">CÓDIGO POSTAL:</label>
+                    <input
+                      type="text"
+                      id="address.postalCode"
+                      name="address.postalCode"
+                      placeholder="Código Postal"
+                      value={formData.address.postalCode}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+              </fieldset>
+            </div>
+          </form>
+
+          {/* --- NUEVO CONTENEDOR PARA EL FORMULARIO DE INFORMACIÓN DE LA CUENTA --- */}
+          <div className="formContainerAccount">
+            <form onSubmit={handleSubmit}>
+              <div className="container">
+                <fieldset id="informacion_cuenta">
+                  <legend>INFORMACIÓN DE LA CUENTA</legend>
+
+                  <div className="email">
+                    <label htmlFor="email" className={!isEmailValid ? 'error-label' : ''}>
+                      CORREO ELECTRÓNICO:
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      placeholder="example@gmail.com"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className={!isEmailValid ? 'error-input' : ''}
+                      required
+                    />
+                  </div>
+
+                  <div className="password">
+                    <label htmlFor="password">CONTRASEÑA:</label>
+                    <input
+                      type="password"
+                      id="password"
+                      name="password"
+                      placeholder="********"
+                      value={formData.password}
+                      onChange={handleChange}
+                      pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}"
+                      title="La contraseña debe tener al menos 8 caracteres, incluyendo una letra mayúscula y un número"
+                      required
+                    />
+                  </div>
+
+                  <div className="confirm_password">
+                    <label htmlFor="confirmPassword">CONFIRMAR CONTRASEÑA:</label>
+                    <input
+                      type="password"
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      placeholder="********"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </fieldset>
+              </div>
+              <div className="submitBtn">
+                <button type="submit" id="submitBtn">
+                  REGISTRARSE
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div className="switch-auth">
+          <label>
+            ¿Ya tienes una cuenta? <Link to="/login">Inicia sesión aquí</Link>
+          </label>
+        </div>
+      </div>
+
+      <div className="register-right">
+        <img src={registerImage} alt="Registro" />
+      </div>
+    </div>
+  );
+};
+
+export default Register;

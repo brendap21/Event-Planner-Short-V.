@@ -1,0 +1,90 @@
+.contact-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column; /* Esto asegura que los elementos se alineen de arriba hacia abajo */
+    border: 3px solid var(--color-terciario);
+    border-radius: 20px;
+    background: 
+        linear-gradient(rgba(255, 255, 255, 0.700), rgba(255, 255, 255, 0.600)), 
+        url("../assets/fondoCOntacto.jpg");
+    background-size: cover;
+    background-position: center;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    max-width: 60%; /* Esto limitará el ancho */
+    padding: 2%; /* Añadimos un pequeño relleno alrededor para asegurar que no quede muy pegado a los bordes */
+    margin: 3% auto; /* Centra el contenedor horizontalmente */
+}
+
+.contact {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center; /* Asegura que el texto dentro de la sección esté centrado */
+    width: 60%;
+}
+
+.contact__form-group {
+    margin-bottom: 5px;
+    text-align: center;
+    font-family: var(--fuente-montserrat);
+    font-weight: 800;
+}
+
+.contact h1 {
+    font-size: 2.3rem;
+    color: var(--color-terciario);
+    font-weight: 800;
+}
+
+.contact p {
+    font-size: 1.2em;
+    line-height: 1.6;
+    color: var(--color-black);
+    margin-top: 0;
+}
+
+.contact__form-group label {
+    display: block;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: var(--color-black);
+}
+
+.contact__form-group input,
+.contact__form-group textarea {
+    width: 100%;
+    max-width: 100%; /* Máximo ancho del campo */
+    padding: 6%;
+    font-size: 1.2rem;
+    border: 1px solid var(--color-primario);
+    border-radius: 5px;
+    box-shadow: inset 0px 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: var(--color-cuaternario);
+}
+
+.contact__form-group textarea {
+    resize: none;
+    height: 100px;
+}
+
+.contact__submit-button {
+    background-color: var(--color-terciario);
+    color: var(--color-white);
+    padding: 2rem;
+    padding-left: 6rem;
+    padding-right: 6rem;
+    font-size: 1.5rem;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 3%;
+    margin-bottom: 3%;
+}
+
+.contact__submit-button:hover {
+    background-color: var(--color-hover);
+}
