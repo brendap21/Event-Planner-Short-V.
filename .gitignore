@@ -1,2 +1,4 @@
 node_modules/
 .cache/
+backend/node_modules/
+backend/serviceAccountKey.json

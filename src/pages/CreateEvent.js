@@ -2,8 +2,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEvents } from '../contexts/EventContext';
-import { db } from '../firebase/firebaseConfig';
-import { addDoc, collection } from 'firebase/firestore';
 import EventForm from '../components/EventForm';
 
 const CreateEvent = () => {

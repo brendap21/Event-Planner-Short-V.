@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { auth } from '../firebase/firebaseConfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase/firebaseConfig'; // Importa Firestore
 import "../styles/Register.css";
 import { Link, useNavigate } from 'react-router-dom';
 import { createAvatar } from '@dicebear/avatars';

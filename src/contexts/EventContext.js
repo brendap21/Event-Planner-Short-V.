@@ -1,53 +1,41 @@
 // src/contexts/EventContext.js
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { db } from '../firebase/firebaseConfig'; 
-import { collection, getDocs, updateDoc, doc } from 'firebase/firestore';
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useContext
+} from 'react';
+import axios from 'axios';
+import { useAuth } from './AuthContext';
 
 const EventContext = createContext();
-
-export function useEvents() {
-  return useContext(EventContext);
-}
+export const useEvents = () => useContext(EventContext);
 
 export function EventProvider({ children }) {
   const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { currentUser } = useAuth();
 
   useEffect(() => {
+    if (!currentUser) return;
     const fetchEvents = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, 'events'));
-        const eventList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setEvents(eventList);
-      } catch (error) {
-        console.error('Error fetching events:', error);
-      } finally {
-        setLoading(false);
+        // Si usas proxy en package.json, /api/events ya apunta a tu backend
+        const res = await axios.get('/api/events', {
+          headers: {
+            // si tu API valida token
+            Authorization: `Bearer ${await currentUser.getIdToken()}`
+          }
+        });
+        setEvents(res.data);
+      } catch (err) {
+        console.error('Error fetching events:', err);
       }
     };
-
     fetchEvents();
-  }, []);
-
-  // Función para archivar un evento
-  const archiveEvent = async (id) => {
-    const eventRef = doc(db, 'events', id);
-    try {
-      await updateDoc(eventRef, {
-        archived: true,
-      });
-      setEvents(prevEvents =>
-        prevEvents.map(event =>
-          event.id === id ? { ...event, archived: true } : event
-        )
-      );
-    } catch (error) {
-      console.error('Error archiving event:', error);
-    }
-  };
+  }, [currentUser]);
 
   return (
-    <EventContext.Provider value={{ events, loading, setEvents, archiveEvent }}>
+    <EventContext.Provider value={{ events }}>
       {children}
     </EventContext.Provider>
   );

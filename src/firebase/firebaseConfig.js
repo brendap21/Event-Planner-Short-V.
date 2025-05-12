@@ -1,21 +1,20 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth"; 
-import { getFirestore } from "firebase/firestore"; 
+import { getAuth } from 'firebase/auth';
 
-//Firebase configuration
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyB14hG2qUhAZ6TxOvZLUCZCkoVNs1PfLro",
-    authDomain: "eventplanner-75a75.firebaseapp.com",
-    projectId: "eventplanner-75a75",
-    storageBucket: "eventplanner-75a75.appspot.com",
-    messagingSenderId: "426919254475",
-    appId: "1:426919254475:web:4d6dcba85e5f9551abbe4e"
+  apiKey: "AIzaSyCzljROkLqBIHNvXcY1xTWoYvBarsbsZEE",
+  authDomain: "eventplannershortv.firebaseapp.com",
+  projectId: "eventplannershortv",
+  storageBucket: "eventplannershortv.firebasestorage.app",
+  messagingSenderId: "458066714455",
+  appId: "1:458066714455:web:1f348705435a1762002812"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-export { auth, db, app };
+export const auth = getAuth(app);

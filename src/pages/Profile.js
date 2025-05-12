@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { auth, db } from '../firebase/firebaseConfig';
+import { auth } from '../firebase/firebaseConfig';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { FaEdit, FaRandom, FaBirthdayCake, FaHome, FaMapMarkerAlt, FaPhone, FaUser, FaMale, FaFemale, FaTransgender, FaTimes, FaSave } from 'react-icons/fa'; // Import additional icons
 import { createAvatar } from '@dicebear/avatars';
