@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { auth } from '../firebase/firebaseConfig';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import "../styles/Register.css";
 import { Link, useNavigate } from 'react-router-dom';
@@ -7,9 +7,7 @@ import { createAvatar } from '@dicebear/avatars';
 import * as style from '@dicebear/avatars-identicon-sprites';
 import registerImage from '../assets/REGISTERIMAGE.jpg'; // Importando la imagen
 import { FaRandom, FaMale, FaFemale } from 'react-icons/fa';
-import { useAuth } from '../contexts/AuthContext';
-
-
+import api from '../api';
 
 const Register = () => {
   const navigate = useNavigate(); // Hook para redirección
@@ -64,7 +62,6 @@ const Register = () => {
     if (name === 'birthDate') {
       validateBirthDate(value);
     }
-    validateForm(); // Llama a la validación aquí para que sea en tiempo real
   };
 
 
@@ -156,18 +153,12 @@ const Register = () => {
 
         const profilePic = formData.profilePicture || `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(createAvatar(style, { seed: formData.email }))))}`;
 
-        // Guardar en Firestore
-        await setDoc(doc(db, "users", user.uid), {
-          uid: user.uid,
-          name: formData.name,
-          lastname: formData.lastname,
-          email: formData.email,
-          phoneNumber: formData.phoneNumber,
-          birthDate: formData.birthDate,
-          gender: formData.gender,
-          address: formData.address,
-          profilePicture: profilePic
-        });
+        // pide el perfil SQL:
+        const { data: profile } = await api.get('/users/me');
+        // guarda en tu estado de React:
+        setProfile(profile);
+        // redirige o muestra mensaje…
+
 
         setSuccessMessage('¡Registro exitoso! Bienvenido a EventPlanner+.');
         setTimeout(() => {

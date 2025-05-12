@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { auth } from '../firebase/firebaseConfig';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { FaEdit, FaRandom, FaBirthdayCake, FaHome, FaMapMarkerAlt, FaPhone, FaUser, FaMale, FaFemale, FaTransgender, FaTimes, FaSave } from 'react-icons/fa'; // Import additional icons
 import { createAvatar } from '@dicebear/avatars';
 import * as style from '@dicebear/avatars-identicon-sprites';
 import '../styles/Profile.css';
+import api from '../api';
 
 const Profile = () => {
   const [userData, setUserData] = useState(null);
@@ -17,19 +17,14 @@ const Profile = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const user = auth.currentUser;
-      if (user) {
-        const docRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          setUserData(docSnap.data());
-          setEditedData(docSnap.data()); // Inicializamos con los datos actuales
-        } else {
-          console.log("No se encontró la información del usuario.");
-        }
+      try {
+        const { data } = await api.get('/users/me');
+        setUserData(data);
+      } catch (err) {
+        console.error('Error al cargar perfil', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchUserData();
@@ -118,14 +113,15 @@ const Profile = () => {
   };
 
   const handleModalConfirm = async () => {
-    const user = auth.currentUser;
-    if (user) {
-      const docRef = doc(db, "users", user.uid);
-      await updateDoc(docRef, editedData); // Actualiza los datos en Firebase
-      setUserData(editedData); // Actualiza los datos del usuario en el estado
-      setShowModal(false); // Cierra el modal
-      setIsEditing(false); // Cambia al modo de visualización
+    try {
+      const { data } = await api.put(`/users/${userData.id}`, editedData);
+      setUserData(data);
+      setShowModal(false);
+      setIsEditing(false);
       alert('Perfil actualizado');
+    } catch (err) {
+      console.error('Error al actualizar perfil', err);
+      alert('No se pudo actualizar el perfil');
     }
   };
 
@@ -159,27 +155,34 @@ const Profile = () => {
   };
 
   const uploadImage = (event) => {
+
     const file = event.target.files[0];
+
     if (file) {
       if (file.size > 5 * 1024 * 1024) { // Check if file size exceeds 5MB
         alert('El tamaño de la imagen no debe exceder los 5MB.');
         return;
       }
+
       const reader = new FileReader();
+
       reader.onload = async (e) => {
         const result = e.target.result;
         setEditedData(prevData => ({
           ...prevData,
           profilePicture: result
         }));
-        const user = auth.currentUser;
-        if (user) {
-          const docRef = doc(db, "users", user.uid);
-          await updateDoc(docRef, { profilePicture: result });
-          setUserData(prevData => ({
-            ...prevData,
-            profilePicture: result,
+        const dataUrl = e.target.result;
+        try {
+          const { data } = await api.put(`/users/${userData.id}`, { profilePicture: dataUrl });
+          setUserData(prev => ({
+            ...prev,
+            profilePicture: data.profilePicture
           }));
+          alert('Imagen actualizada');
+        } catch (err) {
+          console.error('Error al actualizar imagen', err);
+          alert('No se pudo actualizar la imagen');
         }
       };
       reader.readAsDataURL(file);
@@ -424,12 +427,12 @@ const Profile = () => {
             <>
               <h2 className="user-name">{userData?.name.toUpperCase()} <br /> {userData?.lastname.toUpperCase()}</h2>
               <p className="gender">{getGenderIcon(userData?.gender)} {userData?.gender.toUpperCase()}</p>
-              <p className="birth-date"><FaBirthdayCake/>{new Date(userData?.birthDate).toLocaleDateString()}</p>
-              <p className="address"><FaHome/> {userData?.address.street} <br /> {userData?.address.city}</p>
-              <p className="postal-code"><FaMapMarkerAlt/>C.P. {userData?.address.postalCode} - {userData?.address.state}</p>
-              <p className="phone-number"><FaPhone/>{userData?.phoneNumber}</p>
+              <p className="birth-date"><FaBirthdayCake />{new Date(userData?.birthDate).toLocaleDateString()}</p>
+              <p className="address"><FaHome /> {userData?.address.street} <br /> {userData?.address.city}</p>
+              <p className="postal-code"><FaMapMarkerAlt />C.P. {userData?.address.postalCode} - {userData?.address.state}</p>
+              <p className="phone-number"><FaPhone />{userData?.phoneNumber}</p>
               <button className="edit-button" onClick={handleEditClick}>
-                <FaEdit/> EDITAR PERFIL
+                <FaEdit /> EDITAR PERFIL
               </button>
             </>
           )}
