@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import api from '../api';
 import { FaEdit, FaRandom, FaBirthdayCake, FaHome, FaMapMarkerAlt, FaPhone, FaUser, FaMale, FaFemale, FaTransgender, FaTimes, FaSave } from 'react-icons/fa'; // Import additional icons
 import { createAvatar } from '@dicebear/avatars';
 import * as style from '@dicebear/avatars-identicon-sprites';
 import '../styles/Profile.css';
-import api from '../api';
 
 const Profile = () => {
   const [userData, setUserData] = useState(null);
@@ -15,35 +15,30 @@ const Profile = () => {
   const [hasChanges, setHasChanges] = useState(false); // Estado para verificar si hay cambios
   const [errors, setErrors] = useState({}); // Estado para los mensajes de error
 
+  // Obtén currentUser del contexto
+  const { currentUser } = useAuth();
+
   useEffect(() => {
-    const fetchUserData = async () => {
+    if (!currentUser) return;
+
+    (async () => {
       try {
-        const { data } = await api.get('/users/me');
+        setLoading(true);
+        // Fuerza refresh si lo necesitas (token no expirado)
+        const token = await currentUser.getIdToken(/* forceRefresh= */ true);
+        const { data } = await api.get('/users/me', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
         setUserData(data);
       } catch (err) {
         console.error('Error al cargar perfil', err);
       } finally {
         setLoading(false);
       }
-    };
+    })();
+  }, [currentUser]);
 
-    fetchUserData();
-  }, []);
-
-  useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape') {
-        setShowModal(false); // Close modal on Escape key press
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
-
-  if (loading) return <p>Cargando perfil...</p>;
+  if (loading || !userData) return <p>Cargando perfil...</p>;
 
   const handleEditClick = () => {
     setIsEditing(true); // Cambia a modo de edición
@@ -114,7 +109,10 @@ const Profile = () => {
 
   const handleModalConfirm = async () => {
     try {
-      const { data } = await api.put(`/users/${userData.id}`, editedData);
+      const token = await currentUser.getIdToken(/* true para forzar refresh si quieres */);
+      const { data } = await api.put(`/users/${userData.id}`, { profilePicture: dataUrl },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setUserData(data);
       setShowModal(false);
       setIsEditing(false);
@@ -138,21 +136,27 @@ const Profile = () => {
 
   const generateRandomAvatar = async () => {
     const svg = createAvatar(style, { seed: Math.random().toString() });
-    const dataUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`;
-    setEditedData(prevData => ({
-      ...prevData,
-      profilePicture: dataUrl,
-    }));
-    const user = auth.currentUser;
-    if (user) {
-      const docRef = doc(db, "users", user.uid);
-      await updateDoc(docRef, { profilePicture: dataUrl });
-      setUserData(prevData => ({
-        ...prevData,
-        profilePicture: dataUrl,
-      }));
+    const dataUrl = `data:image/svg+xml;base64,${btoa(svg)}`;
+
+    // 1) Actualizar preview
+    setEditedData(prev => ({ ...prev, profilePicture: dataUrl }));
+
+    // 2) Guardar en MySQL
+    const token = await currentUser.getIdToken(true);
+    try {
+      const { data } = await api.put(
+        `/users/${userData.id}`,
+        { profilePicture: dataUrl },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setUserData(data);
+      alert('Avatar guardado correctamente');
+    } catch (err) {
+      console.error('Error actualizando avatar:', err);
+      alert('No se pudo guardar el avatar');
     }
   };
+
 
   const uploadImage = (event) => {
 
@@ -174,7 +178,9 @@ const Profile = () => {
         }));
         const dataUrl = e.target.result;
         try {
-          const { data } = await api.put(`/users/${userData.id}`, { profilePicture: dataUrl });
+          const token = await currentUser.getIdToken(/* true para forzar refresh si quieres */);
+          const { data } = await api.put(`/users/${userData.id}`, { profilePicture: dataUrl }, { headers: { Authorization: `Bearer ${token}` } }
+          );
           setUserData(prev => ({
             ...prev,
             profilePicture: data.profilePicture
@@ -422,20 +428,54 @@ const Profile = () => {
                   <FaTimes /> CANCELAR
                 </button>
               </div>
-            </div>
-          ) : (
-            <>
-              <h2 className="user-name">{userData?.name.toUpperCase()} <br /> {userData?.lastname.toUpperCase()}</h2>
-              <p className="gender">{getGenderIcon(userData?.gender)} {userData?.gender.toUpperCase()}</p>
-              <p className="birth-date"><FaBirthdayCake />{new Date(userData?.birthDate).toLocaleDateString()}</p>
-              <p className="address"><FaHome /> {userData?.address.street} <br /> {userData?.address.city}</p>
-              <p className="postal-code"><FaMapMarkerAlt />C.P. {userData?.address.postalCode} - {userData?.address.state}</p>
-              <p className="phone-number"><FaPhone />{userData?.phoneNumber}</p>
-              <button className="edit-button" onClick={handleEditClick}>
-                <FaEdit /> EDITAR PERFIL
-              </button>
-            </>
-          )}
+            </div>)
+            : (
+              <>
+                <h2 className="user-name">
+                  {userData.first_name?.toUpperCase() || ''}{' '}
+                  {userData.last_name?.toUpperCase() || ''}
+                </h2>
+
+                {/* Gender */}
+                <p className="gender">
+                  {getGenderIcon(userData.gender)}
+                  {userData.gender ? ` ${userData.gender.toUpperCase()}` : ''}
+                </p>
+
+                {/* Birth date */}
+                <p className="birth-date">
+                  <FaBirthdayCake />
+                  {userData.birthDate || '—'}
+                </p>
+
+                {/* Address */}
+                <p className="address">
+                  <FaHome /> {userData.address.street || '—'}<br />
+                  {userData.address.city || '—'}
+                </p>
+                <p className="postal-code">
+                  <FaMapMarkerAlt />
+                  C.P. {userData.address.postalCode || '—'} – {userData.address.state || '—'}
+                </p>
+
+                {/* Phone */}
+                <p className="phone-number">
+                  <FaPhone />
+                  {userData.phoneNumber || '—'}
+                </p>
+
+                {/* Avatar */}
+                <img
+                  id="profile-image"
+                  src={userData.profilePicture || 'https://api.dicebear.com/7.x/adventurer/svg?seed=default'}
+                  alt="Foto de perfil"
+                />
+
+                <button className="edit-button" onClick={handleEditClick}>
+                  <FaEdit /> EDITAR PERFIL
+                </button>
+              </>
+            )}
         </div>
         {showModal && (
           <div className="modal">

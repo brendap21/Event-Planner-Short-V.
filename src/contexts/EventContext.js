@@ -5,8 +5,8 @@ import React, {
   useEffect,
   useContext
 } from 'react';
-import axios from 'axios';
 import { useAuth } from './AuthContext';
+import api from '../api';
 
 const EventContext = createContext();
 export const useEvents = () => useContext(EventContext);
@@ -20,7 +20,7 @@ export function EventProvider({ children }) {
     const fetchEvents = async () => {
       try {
         // Si usas proxy en package.json, /api/events ya apunta a tu backend
-        const res = await axios.get('/api/events', {
+        const res = await api.get('/events', {
           headers: {
             // si tu API valida token
             Authorization: `Bearer ${await currentUser.getIdToken()}`
