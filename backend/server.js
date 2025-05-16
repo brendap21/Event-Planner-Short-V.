@@ -15,7 +15,9 @@ app.use(
     origin: 'http://localhost:3000'
   })
 );
-app.use(express.json());
+
+app.use(express.json({ limit: '10mb' })); // Acepta hasta 10MB en JSON
+app.use(express.urlencoded({ limit: '10mb', extended: true })); // Igual para formularios
 
 const SRC = path.resolve(__dirname, '..', 'src');
 

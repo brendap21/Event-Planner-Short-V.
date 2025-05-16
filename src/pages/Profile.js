@@ -81,7 +81,10 @@ const Profile = () => {
   // --- HANDLERS ---
   const handleEditClick = () => {
     setIsEditing(true);
-    setEditedData(userData);
+    setEditedData({
+      ...userData,
+      gender: mapGenderFromDB(userData.gender), // 👈 Aquí el mapeo
+    });
     setHasChanges(false);
     setErrors({});
   };
@@ -133,23 +136,18 @@ const Profile = () => {
   const handleModalConfirm = async () => {
     try {
       const token = await currentUser.getIdToken(true);
-
-      // <-- MAPEA GÉNERO
       const dataToSend = {
         ...editedData,
         gender: mapGenderToDB(editedData.gender),
+        // profile_image ya viene en editedData si la seleccionaste
       };
-
       await api.put(`/users/${userData.id}`, dataToSend, {
         headers: { Authorization: `Bearer ${token}` }
       });
-
-      // ¡OJO! Actualiza el userData local para reflejar el mapeo (para que se vea al instante)
       setUserData(prev => ({
         ...editedData,
         gender: mapGenderToDB(editedData.gender),
       }));
-
       setShowModal(false);
       setIsEditing(false);
       alert('Perfil actualizado');
@@ -158,6 +156,7 @@ const Profile = () => {
       alert('No se pudo actualizar el perfil');
     }
   };
+
 
   const handleModalCancel = () => setShowModal(false);
 
@@ -188,7 +187,7 @@ const Profile = () => {
     }
   };
 
-  const uploadImage = (event) => {
+  const uploadImage = async (event) => {
     const file = event.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
@@ -196,9 +195,23 @@ const Profile = () => {
         return;
       }
       const reader = new FileReader();
-      reader.onload = e => {
-        setEditedData(prev => ({ ...prev, profile_image: e.target.result }));
-        setHasChanges(true);
+      reader.onload = async (e) => {
+        const imageUrl = e.target.result;
+        setEditedData(prev => ({ ...prev, profile_image: imageUrl }));
+        setUserData(prev => ({ ...prev, profile_image: imageUrl }));
+
+        // --- AUTOMÁTICAMENTE GUARDA EN BD AL SELECCIONAR ---
+        try {
+          const token = await currentUser.getIdToken(true);
+          await api.put(
+            `/users/${userData.id}`,
+            { ...userData, profile_image: imageUrl },
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+        } catch (err) {
+          alert("No se pudo actualizar la imagen de perfil");
+          console.error(err);
+        }
       };
       reader.readAsDataURL(file);
     }
