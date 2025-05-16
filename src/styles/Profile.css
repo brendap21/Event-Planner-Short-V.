@@ -15,9 +15,11 @@
   background: url('../assets/STARTIMAGE.jpg') no-repeat center/cover;
   position: relative;
   display: flex;
-  flex-direction: row; /* changed from column */
+  flex-direction: row;
+  /* changed from column */
   justify-content: right;
-  align-items: center; /* changed from flex-end */
+  align-items: center;
+  /* changed from flex-end */
   padding-right: 2%;
 }
 
@@ -28,12 +30,15 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(163, 151, 151, 0.149); /* Add a semi-transparent white filter */
+  background: rgba(163, 151, 151, 0.149);
+  /* Add a semi-transparent white filter */
   z-index: 1;
 }
 
-.profile-image, .random-image-button {
-  z-index: 2; /* Ensure these elements are above the filter */
+.profile-image,
+.random-image-button {
+  z-index: 2;
+  /* Ensure these elements are above the filter */
 }
 
 .profile-image {
@@ -55,8 +60,10 @@
 }
 
 .edit-form .profile-image {
-  width: 70%; /* Increase width when editing */
-  height: 70%; /* Increase height when editing */
+  width: 70%;
+  /* Increase width when editing */
+  height: 70%;
+  /* Increase height when editing */
 }
 
 .random-image-button {
@@ -68,9 +75,9 @@
   border-radius: 8px;
   font-size: 20px;
   transition: background 0.3s;
-  order: -1; 
+  order: -1;
   margin-right: 4%;
-  align-self: flex-end; 
+  align-self: flex-end;
   margin-bottom: 4%;
 }
 
@@ -138,7 +145,8 @@
   width: 100%;
   font-family: var(--fuente-montserrat);
   font-weight: bold;
-  margin: 1rem 0 0.2rem 0; /* Add top margin for more space */
+  margin: 1rem 0 0.2rem 0;
+  /* Add top margin for more space */
   display: flex;
   justify-content: center;
 }
@@ -163,17 +171,20 @@
 }
 
 .edit-button svg {
-  margin-right: 4%; /* Increase margin for more space */
+  margin-right: 4%;
+  /* Increase margin for more space */
 }
 
 .button-row {
   display: flex;
   justify-content: flex-start;
-  gap: 1rem; /* Space between buttons */
+  gap: 1rem;
+  /* Space between buttons */
   margin-top: 5%;
 }
 
-.save-button, .cancel-button {
+.save-button,
+.cancel-button {
   width: 50%;
   padding: 5%;
   border: none;
@@ -191,16 +202,19 @@
 }
 
 .save-button:hover {
-  background-color: #333333; /* Darker variation of black */
+  background-color: #333333;
+  /* Darker variation of black */
 }
 
 .save-button:disabled {
-  background-color: #666666; /* Lighter variation of black */
+  background-color: #666666;
+  /* Lighter variation of black */
   cursor: not-allowed;
 }
 
 .save-button svg {
-  margin-right: 8px; /* Increase margin for more space */
+  margin-right: 8px;
+  /* Increase margin for more space */
 }
 
 .cancel-button {
@@ -212,11 +226,13 @@
 }
 
 .cancel-button:hover {
-  background-color: var(--color-darker-red) /* Darker variation of red */
+  background-color: var(--color-darker-red)
+    /* Darker variation of red */
 }
 
 .cancel-button svg {
-  margin-right: 8px; /* Increase margin for more space */
+  margin-right: 8px;
+  /* Increase margin for more space */
 }
 
 .hidden-file-input {
@@ -233,7 +249,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999; /* Ensure modal is always on top */
+  z-index: 9999;
+  /* Ensure modal is always on top */
 }
 
 .modal-content {
@@ -279,8 +296,8 @@
   font-family: var(--fuente-krona);
   font-size: 3rem;
   text-align: left;
-  margin-top: 3%; 
-  margin-left: 5%; 
+  margin-top: 3%;
+  margin-left: 5%;
   color: black;
 }
 
@@ -289,28 +306,51 @@
   font-weight: bold;
 }
 
-.birth-date, .gender, .address, .postal-code, .phone-number {
+.birth-date,
+.gender,
+.address,
+.postal-code,
+.phone-number {
   font-family: var(--fuente-montserrat);
+}
+
+.grid-row {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  margin-bottom: 1.2rem;
+}
+
+.grid-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .grid-column label {
-  text-align: left;
   font-family: var(--fuente-montserrat);
   font-weight: bold;
-  margin: 1rem 0 0.2rem 0; /* Add top margin for more space */
+  font-size: 1.08rem;
+  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
 }
 
 .grid-column input:not([type="radio"]):not([type="checkbox"]),
-.grid-column select {
+.grid-column select,
+.readonly-email,
+.readonly-date {
   font-size: 1rem;
   padding: 0.8rem;
   width: 100%;
   border-radius: 5px;
   height: 50px;
   line-height: 1.3;
-  margin: 0; /* Importante: sin margin para inputs/select */
-  border: 1px solid #ccc; /* More subtle border */
-  color: #333; /* Different text color */
+  border: 1px solid #ccc;
+  color: #333;
+  background: #fff;
+  box-sizing: border-box;
 }
 
 .grid-column input:focus {
@@ -327,7 +367,148 @@
 
 .error-message {
   color: var(--color-red);
-  font-size: 0.75rem; /* Reduce font size */
+  font-size: 0.75rem;
+  /* Reduce font size */
   margin-top: 0.5rem;
-  white-space: nowrap; /* Prevent text from wrapping to the next line */
+  white-space: nowrap;
+  /* Prevent text from wrapping to the next line */
+}
+
+input[readonly], input[disabled], .readonly-email, .readonly-date {
+  background: #e2e2e2 !important;
+  cursor: not-allowed;
+  color: #888 !important;
+  font-family: var(--fuente-montserrat);
+  border: 1px solid #cccccc;
+  font-size: 1.07rem;
+  text-align: center;
+  opacity: 1 !important;
+}
+
+input[readonly]::placeholder, input[disabled]::placeholder {
+  color: #aaa !important;
+  opacity: 1;
+}
+
+/* Para select y textarea deshabilitados, si los usas */
+select:disabled, textarea:disabled {
+  background: #e2e2e2;
+  color: #888;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.info-container p {
+  display: flex;
+  align-items: center;
+  margin: 8px 0 8px 0;
+  font-size: 1.12rem;
+  color: #222;
+}
+
+.info-container p svg {
+  margin-right: 10px;
+  min-width: 20px;
+  font-size: 1.2em;
+}
+
+.user-name {
+  font-size: 1.6rem;
+  font-weight: bold;
+  margin-bottom: 12px;
+  margin-top: 8px;
+}
+
+.email-profile {
+  display: flex;
+  align-items: center;
+  font-family: var(--fuente-montserrat);
+  font-size: 1.12rem;
+  color: #222;
+  margin: 8px 0 8px 0;
+  word-break: break-all; /* Por si es muy largo */
+}
+
+.email-profile .label-svg {
+  margin-right: 10px;
+  min-width: 20px;
+  font-size: 1.2em;
+}
+
+.email-readonly-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.label-icon {
+  display: flex;
+  align-items: center;
+  font-family: var(--fuente-montserrat);
+  font-weight: bold;
+  font-size: 1.08rem;
+  margin-bottom: 0.6rem;
+}
+
+.label-svg {
+  margin-right: 8px;
+  font-size: 1.15em;
+  vertical-align: middle;
+}
+
+.readonly-date,
+.readonly-email {
+  background: #ececec;
+  color: #666;
+  cursor: not-allowed;
+  text-align: center;
+  font-family: var(--fuente-montserrat);
+  font-size: 1rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  padding: 0.8rem;
+  width: 100%;
+  height: 50px;
+  line-height: 1.3;
+  margin-bottom: 0.2rem;
+  box-sizing: border-box;
+  opacity: 1;
+}
+
+.edit-profile-title-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.edit-profile-icon {
+  font-size: 2.5rem;
+  color: var(--color-terciario, #3a255d);
+  margin-right: 0.7rem;
+}
+
+.edit-profile-title {
+  font-size: 3rem;
+  font-family: var(--fuente-krona);
+  font-weight: 900;
+  text-align: center;
+  letter-spacing: 0.04em;
+  margin-bottom: 0;
+}
+
+.profile-field {
+  display: flex;
+  align-items: center;
+  margin: 8px 0 8px 0;
+  font-size: 1.12rem;
+  color: #222;
+  font-family: var(--fuente-montserrat);
+  word-break: break-word;
+}
+.profile-field .label-svg {
+  margin-right: 10px;
+  min-width: 20px;
+  font-size: 1.2em;
 }

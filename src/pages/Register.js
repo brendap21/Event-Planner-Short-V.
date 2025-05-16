@@ -5,12 +5,22 @@ import { auth } from '../firebase/firebaseConfig';
 import "../styles/Register.css";
 import { Link, useNavigate } from 'react-router-dom';
 import registerImage from '../assets/REGISTERIMAGE.jpg';
-import { FaRandom, FaMale, FaFemale } from 'react-icons/fa';
+import { FaRandom, FaMale, FaFemale, FaBirthdayCake, FaPhone } from 'react-icons/fa';
 import api from '../api';
 
-const diceBearStyle = 'identicon'; 
+const diceBearStyle = 'identicon';
 const getAvatarUrl = (seed) =>
   `https://api.dicebear.com/7.x/${diceBearStyle}/svg?seed=${encodeURIComponent(seed || 'avatar')}`;
+
+function formatDate(dateString) {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  if (isNaN(date)) return dateString;
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+}
 
 const Register = () => {
   const navigate = useNavigate();
@@ -22,7 +32,7 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    profilePicture: '', // aquí va la URL o la imagen subida
+    profilePicture: getAvatarUrl('default'), // <- Esto
     phoneNumber: '',
     birthDate: '',
     gender: '',
@@ -38,6 +48,8 @@ const Register = () => {
   const [isEmailValid, setIsEmailValid] = useState(true);
   const [successMessage, setSuccessMessage] = useState('');
   const [registering, setRegistering] = useState(false);
+  const [errors, setErrors] = useState({});
+
 
   useEffect(() => {
     if (currentUser) {
@@ -143,52 +155,36 @@ const Register = () => {
     setError('');
 
     try {
-      // Registro en Firebase
+      // 1. Registro en Firebase
       const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
       const user = userCredential.user;
       const token = await user.getIdToken();
 
-      // Imagen de perfil: si subió imagen, úsala; si no, usa URL de avatar CDN
-      let profilePic = formData.profilePicture;
-      if (!profilePic) {
-        profilePic = getAvatarUrl(formData.email || formData.name || 'avatar');
-      }
-
-      // Envía los datos a tu backend SQL usando token
+      // 2. Configura axios con el token
       api.defaults.headers.common.Authorization = `Bearer ${token}`;
-      await api.post('/users/me', {
+
+      // 3. POST a /api/users con todos los datos y el UID
+      await api.post('/users', {
+        firebase_uid: user.uid,
         first_name: formData.name,
         last_name: formData.lastname,
-        phone: formData.phoneNumber,
+        email: formData.email,
         dob: formData.birthDate,
+        phone: formData.phoneNumber,
         gender: formData.gender,
         street: formData.address.street,
         city: formData.address.city,
         state: formData.address.state,
         postal_code: formData.address.postalCode,
-        profile_image: profilePic
+        profile_image: formData.profilePicture || getAvatarUrl(formData.email || formData.name || 'avatar')
       });
-
-      // Refresca perfil si tienes implementado
-      if (typeof refreshProfile === 'function') await refreshProfile();
 
       setSuccessMessage('¡Registro exitoso! Bienvenido a EventPlanner+.');
       setTimeout(() => {
         navigate('/');
       }, 1500);
 
-      setFormData({
-        name: '',
-        lastname: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-        profilePicture: '',
-        phoneNumber: '',
-        birthDate: '',
-        gender: '',
-        address: { street: '', city: '', state: '', postalCode: '' }
-      });
+      setFormData({ /* limpia form */ });
       setError('');
     } catch (err) {
       console.error('Error al registrar el usuario:', err);
@@ -197,6 +193,7 @@ const Register = () => {
       setRegistering(false);
     }
   };
+
 
   const handleImageClick = () => {
     document.getElementById('profilePicture').click();
@@ -225,7 +222,7 @@ const Register = () => {
                         className="profile-picture-container"
                         onClick={handleImageClick}
                         style={{
-                          backgroundImage: `url('${formData.profilePicture || getAvatarUrl(formData.email || formData.name || 'avatar')}')`,
+                          backgroundImage: `url('${formData.profilePicture}')`,
                           backgroundSize: "cover",
                           backgroundPosition: "center",
                           backgroundRepeat: "no-repeat"
@@ -258,9 +255,10 @@ const Register = () => {
                           type="radio"
                           id="male"
                           name="gender"
-                          value="male"
-                          checked={formData.gender === 'male'}
+                          value="M"
+                          checked={formData.gender === 'M'}
                           onChange={handleChange}
+                          required
                         />
                         <label htmlFor="male">
                           <FaMale />
@@ -271,8 +269,8 @@ const Register = () => {
                           type="radio"
                           id="female"
                           name="gender"
-                          value="female"
-                          checked={formData.gender === 'female'}
+                          value="F"
+                          checked={formData.gender === 'F'}
                           onChange={handleChange}
                         />
                         <label htmlFor="female">
@@ -284,8 +282,8 @@ const Register = () => {
                           type="radio"
                           id="other"
                           name="gender"
-                          value="other"
-                          checked={formData.gender === 'other'}
+                          value="O"
+                          checked={formData.gender === 'O'}
                           onChange={handleChange}
                         />
                         <label htmlFor="other">otro</label>
@@ -322,19 +320,24 @@ const Register = () => {
                 </div>
                 <div className="grid-row">
                   <div className="grid-column">
-                    <label htmlFor="birthDate">FECHA DE NACIMIENTO:</label>
+                    <label htmlFor="dob">
+                      <FaBirthdayCake style={{ marginRight: "8px", fontSize: "1.15em", verticalAlign: "middle" }} />
+                      FECHA DE NACIMIENTO:
+                    </label>
                     <input
                       type="date"
                       id="birthDate"
                       name="birthDate"
-                      placeholder="mm/dd/aaaa"
                       value={formData.birthDate}
                       onChange={handleChange}
                       required
                     />
                   </div>
                   <div className="grid-column">
-                    <label htmlFor="phoneNumber">NÚMERO DE TELÉFONO:</label>
+                    <label htmlFor="phone">
+                      <FaPhone style={{ marginRight: "8px", fontSize: "1.15em", verticalAlign: "middle" }} />
+                      NÚMERO DE TELÉFONO:
+                    </label>
                     <input
                       type="tel"
                       id="phoneNumber"
@@ -344,6 +347,7 @@ const Register = () => {
                       onChange={handleChange}
                       required
                     />
+                    {errors.phone && <span className="error-message">{errors.phone}</span>}
                   </div>
                 </div>
                 <div className="grid-row">
