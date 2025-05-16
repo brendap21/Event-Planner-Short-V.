@@ -1,21 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase/firebaseConfig';
 import "../styles/Register.css";
 import { Link, useNavigate } from 'react-router-dom';
-import { createAvatar } from '@dicebear/avatars';
-import * as style from '@dicebear/avatars-identicon-sprites';
-import registerImage from '../assets/REGISTERIMAGE.jpg'; // Importando la imagen
+import registerImage from '../assets/REGISTERIMAGE.jpg';
 import { FaRandom, FaMale, FaFemale } from 'react-icons/fa';
 import api from '../api';
 
-const Register = () => {
-  const navigate = useNavigate(); // Hook para redirección
-  const { currentUser } = useAuth();
+const diceBearStyle = 'identicon'; 
+const getAvatarUrl = (seed) =>
+  `https://api.dicebear.com/7.x/${diceBearStyle}/svg?seed=${encodeURIComponent(seed || 'avatar')}`;
 
-  if (currentUser) {
-    navigate("/"); // Si ya está autenticado, redirige a la página de inicio
-  }
+const Register = () => {
+  const navigate = useNavigate();
+  const { currentUser, refreshProfile } = useAuth();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -23,7 +22,7 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    profilePicture: '',
+    profilePicture: '', // aquí va la URL o la imagen subida
     phoneNumber: '',
     birthDate: '',
     gender: '',
@@ -38,6 +37,21 @@ const Register = () => {
   const [error, setError] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(true);
   const [successMessage, setSuccessMessage] = useState('');
+  const [registering, setRegistering] = useState(false);
+
+  useEffect(() => {
+    if (currentUser) {
+      navigate("/");
+    }
+  }, [currentUser, navigate]);
+
+  const generateRandomAvatar = () => {
+    const randomSeed = Math.random().toString(36).substring(2);
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      profilePicture: getAvatarUrl(randomSeed)
+    }));
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -64,16 +78,15 @@ const Register = () => {
     }
   };
 
-
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file && file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData({
-          ...formData,
-          profilePicture: reader.result  // Cargar la imagen cargada
-        });
+        setFormData(prev => ({
+          ...prev,
+          profilePicture: reader.result
+        }));
       };
       reader.readAsDataURL(file);
     } else {
@@ -81,36 +94,19 @@ const Register = () => {
     }
   };
 
-
-  const generateAvatar = () => {
-    const svg = createAvatar(style, { seed: formData.email });
-    return svg;
-  };
-
-  const generateRandomAvatar = () => {
-    const svg = createAvatar(style, { seed: Math.random().toString() });
-    setFormData(prevFormData => ({
-      ...prevFormData,
-      profilePicture: `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(svg)))}`
-    }));
-  };
-
   const validateForm = () => {
     if (!formData.name || !formData.lastname || !formData.email || !formData.password || !formData.confirmPassword) {
       setError('Todos los campos son obligatorios');
       return false;
     }
-
     if (formData.password !== formData.confirmPassword) {
       setError('Las contraseñas no coinciden');
       return false;
     }
-
     if (formData.password.length < 8) {
       setError('La contraseña debe tener al menos 8 caracteres');
       return false;
     }
-
     if (!/\S+@\S+\.\S+/.test(formData.email)) {
       setIsEmailValid(false);
       setError('Por favor ingresa un correo electrónico válido');
@@ -118,11 +114,9 @@ const Register = () => {
     } else {
       setIsEmailValid(true);
     }
-
     setError('');
     return true;
   };
-
 
   const validateBirthDate = (date) => {
     const today = new Date();
@@ -133,7 +127,6 @@ const Register = () => {
     if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
-
     if (age < 18) {
       setError('Debes tener al menos 18 años para registrarte.');
     } else {
@@ -143,46 +136,65 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (error) return;
+    if (error || registering) return;
+    if (!validateForm()) return;
 
-    if (validateForm()) {
-      try {
-        const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-        const user = userCredential.user;
-        console.log('Usuario registrado:', user);
+    setRegistering(true);
+    setError('');
 
-        const profilePic = formData.profilePicture || `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(createAvatar(style, { seed: formData.email }))))}`;
+    try {
+      // Registro en Firebase
+      const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+      const user = userCredential.user;
+      const token = await user.getIdToken();
 
-        // pide el perfil SQL:
-        const { data: profile } = await api.get('/users/me');
-        // guarda en tu estado de React:
-        setProfile(profile);
-        // redirige o muestra mensaje…
-
-
-        setSuccessMessage('¡Registro exitoso! Bienvenido a EventPlanner+.');
-        setTimeout(() => {
-          navigate('/'); // Redirige después de 2 segundos
-        }, 2000);
-        setError('');
-
-        setFormData({
-          name: '',
-          lastname: '',
-          email: '',
-          password: '',
-          confirmPassword: '',
-          profilePicture: '',
-          phoneNumber: '',
-          birthDate: '',
-          gender: '',
-          address: { street: '', city: '', state: '', postalCode: '' }
-        });
-
-      } catch (error) {
-        console.error('Error al registrar el usuario:', error.message);
-        setError('Hubo un problema al registrar tu cuenta. Inténtalo nuevamente.');
+      // Imagen de perfil: si subió imagen, úsala; si no, usa URL de avatar CDN
+      let profilePic = formData.profilePicture;
+      if (!profilePic) {
+        profilePic = getAvatarUrl(formData.email || formData.name || 'avatar');
       }
+
+      // Envía los datos a tu backend SQL usando token
+      api.defaults.headers.common.Authorization = `Bearer ${token}`;
+      await api.post('/users/me', {
+        first_name: formData.name,
+        last_name: formData.lastname,
+        phone: formData.phoneNumber,
+        dob: formData.birthDate,
+        gender: formData.gender,
+        street: formData.address.street,
+        city: formData.address.city,
+        state: formData.address.state,
+        postal_code: formData.address.postalCode,
+        profile_image: profilePic
+      });
+
+      // Refresca perfil si tienes implementado
+      if (typeof refreshProfile === 'function') await refreshProfile();
+
+      setSuccessMessage('¡Registro exitoso! Bienvenido a EventPlanner+.');
+      setTimeout(() => {
+        navigate('/');
+      }, 1500);
+
+      setFormData({
+        name: '',
+        lastname: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        profilePicture: '',
+        phoneNumber: '',
+        birthDate: '',
+        gender: '',
+        address: { street: '', city: '', state: '', postalCode: '' }
+      });
+      setError('');
+    } catch (err) {
+      console.error('Error al registrar el usuario:', err);
+      setError('Hubo un problema al registrar tu cuenta. Inténtalo nuevamente.');
+    } finally {
+      setRegistering(false);
     }
   };
 
@@ -201,33 +213,24 @@ const Register = () => {
         {successMessage && <p className="success-message">{successMessage}</p>}
 
         <div className="register-left">
-          {/* --- PRIMER FORMULARIO: INFORMACIÓN DEL USUARIO --- */}
           <form onSubmit={handleSubmit}>
             <div className="container">
               <fieldset id="informacion_usuario">
                 <legend>INFORMACIÓN DEL USUARIO</legend>
-
-                {/* Fila #1: Foto de Perfil / Género */}
                 <div className="grid-row">
                   <div className="grid-column">
                     <label>FOTO DE PERFIL:</label>
-                    <div className="profile-picture-row">
+                    <div className="profile-picture-row" style={{ alignItems: 'center' }}>
                       <div
                         className="profile-picture-container"
                         onClick={handleImageClick}
+                        style={{
+                          backgroundImage: `url('${formData.profilePicture || getAvatarUrl(formData.email || formData.name || 'avatar')}')`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                          backgroundRepeat: "no-repeat"
+                        }}
                       >
-                        {formData.profilePicture ? (
-                          <img
-                            src={formData.profilePicture}
-                            alt="Perfil"
-                            className="profile-image"
-                          />
-                        ) : (
-                          <div
-                            dangerouslySetInnerHTML={{ __html: generateAvatar() }}
-                            className="profile-avatar"
-                          ></div>
-                        )}
                         <input
                           type="file"
                           id="profilePicture"
@@ -241,6 +244,7 @@ const Register = () => {
                         type="button"
                         onClick={generateRandomAvatar}
                         className="random-avatar-button"
+                        tabIndex={-1}
                       >
                         <FaRandom />
                       </button>
@@ -289,8 +293,7 @@ const Register = () => {
                     </div>
                   </div>
                 </div>
-
-                {/* Fila #2: Nombre / Apellido */}
+                {/* ...El resto de tu formulario queda IGUAL... */}
                 <div className="grid-row">
                   <div className="grid-column">
                     <label htmlFor="name">NOMBRE:</label>
@@ -317,8 +320,6 @@ const Register = () => {
                     />
                   </div>
                 </div>
-
-                {/* Fila #3: Fecha de Nacimiento / Número de Teléfono */}
                 <div className="grid-row">
                   <div className="grid-column">
                     <label htmlFor="birthDate">FECHA DE NACIMIENTO:</label>
@@ -345,8 +346,6 @@ const Register = () => {
                     />
                   </div>
                 </div>
-
-                {/* Fila #4: Calle / Ciudad */}
                 <div className="grid-row">
                   <div className="grid-column">
                     <label htmlFor="address.street">CALLE:</label>
@@ -371,8 +370,6 @@ const Register = () => {
                     />
                   </div>
                 </div>
-
-                {/* Fila #5: Estado / Código Postal */}
                 <div className="grid-row">
                   <div className="grid-column">
                     <label htmlFor="address.state">ESTADO:</label>
@@ -383,6 +380,8 @@ const Register = () => {
                       onChange={handleChange}
                       required
                     >
+                      <option value="">Selecciona estado</option>
+                      {/* ...Los estados como antes... */}
                       <option value="Aguascalientes">Aguascalientes</option>
                       <option value="Baja California">Baja California</option>
                       <option value="Baja California Sur">Baja California Sur</option>
@@ -431,15 +430,10 @@ const Register = () => {
                 </div>
               </fieldset>
             </div>
-          </form>
-
-          {/* --- NUEVO CONTENEDOR PARA EL FORMULARIO DE INFORMACIÓN DE LA CUENTA --- */}
-          <div className="formContainerAccount">
-            <form onSubmit={handleSubmit}>
+            <div className="formContainerAccount">
               <div className="container">
                 <fieldset id="informacion_cuenta">
                   <legend>INFORMACIÓN DE LA CUENTA</legend>
-
                   <div className="email">
                     <label htmlFor="email" className={!isEmailValid ? 'error-label' : ''}>
                       CORREO ELECTRÓNICO:
@@ -455,7 +449,6 @@ const Register = () => {
                       required
                     />
                   </div>
-
                   <div className="password">
                     <label htmlFor="password">CONTRASEÑA:</label>
                     <input
@@ -470,7 +463,6 @@ const Register = () => {
                       required
                     />
                   </div>
-
                   <div className="confirm_password">
                     <label htmlFor="confirmPassword">CONFIRMAR CONTRASEÑA:</label>
                     <input
@@ -486,21 +478,19 @@ const Register = () => {
                 </fieldset>
               </div>
               <div className="submitBtn">
-                <button type="submit" id="submitBtn">
-                  REGISTRARSE
+                <button type="submit" id="submitBtn" disabled={registering}>
+                  {registering ? "Registrando..." : "REGISTRARSE"}
                 </button>
               </div>
-            </form>
-          </div>
+            </div>
+          </form>
         </div>
-
         <div className="switch-auth">
           <label>
             ¿Ya tienes una cuenta? <Link to="/login">Inicia sesión aquí</Link>
           </label>
         </div>
       </div>
-
       <div className="register-right">
         <img src={registerImage} alt="Registro" />
       </div>
