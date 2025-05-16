@@ -1,0 +1,103 @@
+.event-category-select {
+  position: relative;
+  width: 100%;
+}
+
+.event-category-selected {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--color-secundario);
+  background: var(--color-cuaternario);
+  border-radius: 10px;
+  padding: .75rem 1rem;
+  cursor: pointer;
+  font-family: var(--fuente-inter);
+  min-height: 45px;
+  transition: border .2s;
+  gap: 12px;
+}
+
+.event-category-color {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  margin-right: 7px;
+  border: 1.5px solid #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.09);
+  display: inline-block;
+}
+.event-category-placeholder {
+  color: #888;
+}
+.event-category-arrow {
+  margin-left: auto;
+  color: #888;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+.event-category-dropdown {
+  position: absolute;
+  left: 0; right: 0;
+  background: #fff;
+  border: 1.5px solid var(--color-secundario);
+  border-radius: 10px;
+  box-shadow: 0 3px 16px 0 rgba(0,0,0,.13);
+  z-index: 99;
+  max-height: 240px;
+  overflow-y: auto;
+  margin-top: 3px;
+  padding: .4rem 0;
+}
+
+.event-category-add-btn {
+  display: flex;
+  align-items: center;
+  font-weight: 700;
+  border-bottom: 1px solid #e5e6e8;
+  margin-bottom: 4px;
+  padding: .58rem 1.1rem .6rem 1.1rem;
+  font-size: 1.08em;
+  cursor: pointer;
+  gap: 8px;
+  color: var(--color-primario);
+}
+.event-category-plus {
+  background: #fff;
+  color: var(--color-primario);
+  border-radius: 4px;
+  border: 2px solid var(--color-primario);
+  font-size: 1.3em;
+  text-align: center;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.event-category-add-form {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: #f7f7fb;
+  border-radius: 8px;
+  padding: 8px 12px 4px 12px;
+  margin: 4px 0 8px 0;
+}
+
+.event-category-option {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-family: var(--fuente-inter);
+  padding: .5rem 1.1rem;
+  gap: 9px;
+  border-radius: 6px;
+  transition: background .13s;
+  font-size: 1.01em;
+}
+.event-category-option:hover, .event-category-option.selected {
+  background: var(--color-secundario);
+  color: #fff;
+}

@@ -2,7 +2,7 @@ const pool = require('../config/db');
 
 // Listar todas las categorías
 exports.getAll = async (req, res) => {
-  const [rows] = await pool.query('SELECT * FROM categories');
+  const [rows] = await pool.query('SELECT id, name, color FROM categories');
   res.json(rows);
 };
 

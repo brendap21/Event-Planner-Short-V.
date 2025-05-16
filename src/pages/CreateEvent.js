@@ -1,99 +1,215 @@
-// src/pages/CreateEvent.js
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useEvents } from '../contexts/EventContext';
-import EventForm from '../components/EventForm';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { CategorySelect } from "../components/CategorySelect";
+import { OwnerSelector } from "../components/OwnerSelector";
+import api from "../api";
+import "../styles/CreateEvent.css";
 
-const CreateEvent = () => {
-  const { setEvents } = useEvents();
-  const [name, setName] = useState('');
-  const [date, setDate] = useState('');
-  const [description, setDescription] = useState('');
-  const [budget, setBudget] = useState('');
-  const [location, setLocation] = useState('');
-  const [contact, setContact] = useState('');
-  const [guests, setGuests] = useState('');
-  const [category, setCategory] = useState('');
-  const [notes, setNotes] = useState('');
-  
-  // Validación de errores
-  const [errors, setErrors] = useState({
-    name: '',
-    date: '',
-    description: '',
-    budget: '',
-  });
+const initialState = {
+  title: "",
+  category_id: "",
+  event_date: "",
+  event_time: "",
+  budget: "",
+  description: "",
+  max_guests: "",
+  owner_id: "",
+};
 
-  const navigate = useNavigate();
+export default function CreateEvent() {
+  const { profile } = useAuth();
+  const [form, setForm] = useState(initialState);
+  const [msg, setMsg] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Validación de campos obligatorios
-    let validationErrors = {};
-    if (!name) validationErrors.name = 'El nombre del evento es obligatorio';
-    if (!date) validationErrors.date = 'La fecha del evento es obligatoria';
-    if (!description) validationErrors.description = 'La descripción es obligatoria';
-    if (!budget) validationErrors.budget = 'El presupuesto es obligatorio';
-
-    setErrors(validationErrors);
-
-    if (Object.keys(validationErrors).length > 0) {
-      return;
+  // Asigna owner automáticamente para usuarios normales
+  useEffect(() => {
+    if (profile?.user_type !== "admin") {
+      setForm(f => ({ ...f, owner_id: profile?.id }));
     }
+  }, [profile]);
 
+  const handleChange = e => {
+    const { name, value } = e.target;
+    setForm(f => ({ ...f, [name]: value }));
+  };
+
+  const handleSubmit = async e => {
+    e.preventDefault();
+    setMsg("");
+    setLoading(true);
     try {
-      const docRef = await addDoc(collection(db, 'events'), {
-        name,
-        date,
-        description,
-        budget,
-        location,
-        contact,
-        guests,
-        category,
-        notes,
-        archived: false,
-      });
+      const payload = {
+        ...form,
+        category_id: Number(form.category_id),
+        owner_id: profile.user_type === "admin" ? form.owner_id : profile.id,
+        budget: form.budget ? Number(form.budget) : 0,
+        max_guests: form.max_guests ? Number(form.max_guests) : null,
+      };
+      await api.post("/events", payload);
+      setMsg("¡Evento creado exitosamente!");
+      setForm(initialState);
+      if (profile?.user_type !== "admin") {
+        setForm(f => ({ ...f, owner_id: profile?.id }));
+      }
+    } catch (err) {
+      setMsg(
+        err.response?.data?.error ||
+        "Error al crear evento. Verifica los campos."
+      );
+    }
+    setLoading(false);
+  };
 
-      setEvents((prevEvents) => [
-        ...prevEvents,
-        { id: docRef.id, name, date, description, budget, location, contact, guests, category, notes, archived: false },
-      ]);
-
-      navigate('/mis-eventos');
-    } catch (error) {
-      console.error('Error creando evento:', error);
+  const handleCancel = () => {
+    setForm(initialState);
+    setMsg("");
+    if (profile?.user_type !== "admin") {
+      setForm(f => ({ ...f, owner_id: profile?.id }));
     }
   };
 
   return (
-    <div>
-      <h1>Crear Evento</h1>
-      <EventForm
-        name={name}
-        setName={setName}
-        date={date}
-        setDate={setDate}
-        description={description}
-        setDescription={setDescription}
-        budget={budget}
-        setBudget={setBudget}
-        location={location}
-        setLocation={setLocation}
-        contact={contact}
-        setContact={setContact}
-        guests={guests}
-        setGuests={setGuests}
-        category={category}
-        setCategory={setCategory}
-        notes={notes}
-        setNotes={setNotes}
-        errors={errors}
-        handleSubmit={handleSubmit}
-      />
-    </div>
+    <main className="main-content">
+      <section className="event-form-container">
+        <h2 className="event-form-title">Crear Nuevo Evento</h2>
+        <form className="event-form-grid" onSubmit={handleSubmit} autoComplete="off">
+          {/* Fila 1 */}
+          <div className="event-input-group">
+            <label className="event-input-label" htmlFor="title">
+              TÍTULO DEL EVENTO:
+            </label>
+            <input
+              className="event-input"
+              id="title"
+              name="title"
+              type="text"
+              value={form.title}
+              onChange={handleChange}
+              placeholder="Ej: Cumpleaños Brenda"
+              required
+            />
+          </div>
+          <div className="event-input-group">
+            <label className="event-input-label" htmlFor="category_id">
+              CATEGORÍA:
+            </label>
+            <CategorySelect value={form.category_id} onChange={handleChange} />
+          </div>
+          {/* Fila 2 */}
+          <div className="event-input-group">
+            <label className="event-input-label" htmlFor="event_date">
+              FECHA DEL EVENTO:
+            </label>
+            <input
+              className="event-input"
+              id="event_date"
+              name="event_date"
+              type="date"
+              value={form.event_date}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="event-input-group event-input-money">
+            <label className="event-input-label" htmlFor="budget">
+              PRESUPUESTO (MXN):
+            </label>
+            <div className="event-input-money-wrapper">
+              <span className="event-input-money-sign">$</span>
+              <input
+                className="event-input"
+                id="budget"
+                name="budget"
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.budget}
+                onChange={handleChange}
+                placeholder="Ej: 1000"
+                required
+              />
+            </div>
+          </div>
+          {/* Fila 3 */}
+          <div className="event-input-group">
+            <label className="event-input-label" htmlFor="event_time">
+              HORA:
+            </label>
+            <input
+              className="event-input"
+              id="event_time"
+              name="event_time"
+              type="time"
+              value={form.event_time}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="event-input-group">
+            <label className="event-input-label" htmlFor="max_guests">
+              MÁX. INVITADOS:
+            </label>
+            <input
+              className="event-input"
+              id="max_guests"
+              name="max_guests"
+              type="number"
+              min="1"
+              value={form.max_guests}
+              onChange={handleChange}
+              placeholder="Ej: 30"
+              required
+            />
+          </div>
+          {/* Owner */}
+          <div className="event-input-group" style={{ gridColumn: "1 / span 2" }}>
+            <label className="event-input-label">
+              SELECCIONAR OWNER:
+            </label>
+            {profile?.user_type === "admin" ? (
+              <OwnerSelector value={form.owner_id} onChange={handleChange} />
+            ) : (
+              <input type="hidden" name="owner_id" value={profile?.id} />
+            )}
+          </div>
+          {/* Descripción */}
+          <div className="event-input-group" style={{ gridColumn: "1 / span 2" }}>
+            <label className="event-input-label" htmlFor="description">
+              DESCRIPCIÓN DEL EVENTO:
+            </label>
+            <textarea
+              className="event-textarea"
+              id="description"
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+              placeholder="Describe los detalles del evento..."
+            />
+          </div>
+          {/* Botones */}
+          <div className="event-button-row" style={{ gridColumn: "1 / span 2" }}>
+            <button
+              type="submit"
+              className="btn-main event-btn-main"
+              disabled={loading}
+            >
+              {loading ? "Creando..." : "Crear Evento"}
+            </button>
+            <button
+              type="button"
+              className="btn-cancel event-btn-cancel"
+              onClick={handleCancel}
+            >
+              Cancelar
+            </button>
+          </div>
+          {msg && (
+            <div className="msg-error" style={{ gridColumn: "1 / span 2" }}>
+              {msg}
+            </div>
+          )}
+        </form>
+      </section>
+    </main>
   );
-};
-
-export default CreateEvent;
+}
