@@ -98,7 +98,7 @@ export function CategorySelect({ value, onChange }) {
                 }}
               />
               <button type="submit" className="btn-main event-btn-main" disabled={loading}>
-                {loading ? "Agregando..." : "Agregar"}
+                {loading ? "..." : "+"}
               </button>
             </form>
           )}

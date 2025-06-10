@@ -53,7 +53,7 @@ exports.getById = async (req, res) => {
 // Crear un usuario
 exports.create = async (req, res) => {
   try {
-    console.log('BODY RECIBIDO EN /users:', req.body); // <-- AGREGAR ESTO
+    console.log('BODY RECIBIDO EN /users:', req.body);
     const {
       firebase_uid, first_name, last_name, email,
       dob, phone, gender, street, city, state,

@@ -21,7 +21,7 @@ export function OwnerSelector({ value, onChange }) {
         style={{ width: "100%", marginBottom: ".7rem" }}
         onClick={() => setShowList(s => !s)}
       >
-        <span style={{ fontWeight: "bold", fontSize: "1.09em" }}>+</span> Buscar owner
+        <span>+</span> AGREGAR OWNER
       </button>
       {showList && (
         <div className="owner-list-modal">

@@ -70,9 +70,9 @@ export default function CreateEvent() {
   };
 
   return (
-    <main className="main-content">
+    <div className="main-content">
       <section className="event-form-container">
-        <h2 className="event-form-title">Crear Nuevo Evento</h2>
+        <h2 className="event-form-title">CREAR EVENTO</h2>
         <form className="event-form-grid" onSubmit={handleSubmit} autoComplete="off">
           {/* Fila 1 */}
           <div className="event-input-group">
@@ -210,6 +210,6 @@ export default function CreateEvent() {
           )}
         </form>
       </section>
-    </main>
+    </div>
   );
 }
