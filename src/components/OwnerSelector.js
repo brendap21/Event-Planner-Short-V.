@@ -6,11 +6,20 @@ export function OwnerSelector({ value, onChange }) {
   const [users, setUsers] = useState([]);
   const [showList, setShowList] = useState(false);
 
+  // Carga usuarios una sola vez
   useEffect(() => {
     api.get("/users?type=user")
       .then(res => setUsers(res.data))
       .catch(() => setUsers([]));
   }, []);
+
+  // Encuentra el usuario seleccionado en base al id que recibes en value
+  const selected = users.find(u => {
+    // Asegura comparar mismo tipo (número vs string)
+    const userId = typeof u.id === "number" ? u.id : parseInt(u.id, 10);
+    const valId  = typeof value === "number" ? value : parseInt(value, 10);
+    return userId === valId;
+  });
 
   return (
     <div className="owner-selector-group">
@@ -21,6 +30,7 @@ export function OwnerSelector({ value, onChange }) {
       >
         <span className="owner-btn-plus">+</span> AGREGAR OWNER
       </button>
+
       {showList && (
         <div className="owner-list-modal">
           {users.map(u => (
@@ -32,7 +42,11 @@ export function OwnerSelector({ value, onChange }) {
                 setShowList(false);
               }}
             >
-              <img src={u.profile_image || "/default-user.png"} alt="img" className="owner-img" />
+              <img
+                src={u.profile_image || "/default-user.png"}
+                alt="img"
+                className="owner-img"
+              />
               <div>
                 <b>{u.first_name} {u.last_name}</b>
                 <div>{u.email}</div>
@@ -41,10 +55,15 @@ export function OwnerSelector({ value, onChange }) {
           ))}
         </div>
       )}
-            {/* Datos informativos del owner seleccionado */}
+
+      {/* Datos informativos del owner seleccionado */}
       {selected && (
         <div className="owner-info-panel">
-          <img src={selected.profile_image || "/default-user.png"} alt="perfil" className="owner-info-img" />
+          <img
+            src={selected.profile_image || "/default-user.png"}
+            alt="perfil"
+            className="owner-info-img"
+          />
           <div>
             <div><b>Nombre:</b> {selected.first_name}</div>
             <div><b>Apellido:</b> {selected.last_name}</div>
@@ -53,8 +72,15 @@ export function OwnerSelector({ value, onChange }) {
           </div>
         </div>
       )}
+
       {/* Hidden input para el form */}
-      <input type="hidden" name="owner_id" value={value || ""} required readOnly />
+      <input
+        type="hidden"
+        name="owner_id"
+        value={value || ""}
+        required
+        readOnly
+      />
     </div>
   );
 }

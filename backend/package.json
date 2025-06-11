@@ -13,6 +13,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
+    "ee-first": "^1.1.1",
     "express": "^5.1.0",
     "firebase-admin": "^13.3.0",
     "mysql2": "^3.14.1"

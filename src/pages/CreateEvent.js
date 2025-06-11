@@ -6,8 +6,6 @@ import { OwnerDisplay } from "../components/OwnerDisplay";
 import api from "../api";
 import "../styles/CreateEvent.css"
 
-const [successMsg, setSuccessMsg] = useState("");
-
 const initialState = {
   title: "",
   category_id: "",
@@ -24,6 +22,7 @@ export default function CreateEvent() {
   const [form, setForm] = useState(initialState);
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
 
   // Asigna owner automáticamente para usuarios normales
   useEffect(() => {
