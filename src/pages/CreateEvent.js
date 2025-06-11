@@ -2,8 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { CategorySelect } from "../components/CategorySelect";
 import { OwnerSelector } from "../components/OwnerSelector";
+import { OwnerDisplay } from "../components/OwnerDisplay";
 import api from "../api";
-import "../styles/CreateEvent.css";
+import "../styles/CreateEvent.css"
+
+const [successMsg, setSuccessMsg] = useState("");
 
 const initialState = {
   title: "",
@@ -46,9 +49,15 @@ export default function CreateEvent() {
         budget: form.budget ? Number(form.budget) : 0,
         max_guests: form.max_guests ? Number(form.max_guests) : null,
       };
-      await api.post("/events", payload);
-      setMsg("¡Evento creado exitosamente!");
+      const res = await api.post("/events", payload);
+      // Muestra confirmación visual bonita
+      setSuccessMsg("¡Evento creado exitosamente! Redirigiendo...");
+      // Opcional: Limpia formulario
       setForm(initialState);
+      // Espera 1.5 segundos y redirige al detalle del evento creado
+      setTimeout(() => {
+        window.location.href = `/eventos/${res.data.id}`; // Ajusta la ruta si tu ruta real es diferente
+      }, 1500);
       if (profile?.user_type !== "admin") {
         setForm(f => ({ ...f, owner_id: profile?.id }));
       }
@@ -111,7 +120,7 @@ export default function CreateEvent() {
               required
             />
           </div>
-          <div className="event-input-group event-input-money">
+          <div className="event-input-group">
             <label className="event-input-label" htmlFor="budget">
               PRESUPUESTO (MXN):
             </label>
@@ -145,6 +154,7 @@ export default function CreateEvent() {
               onChange={handleChange}
             />
           </div>
+
           <div className="event-input-group">
             <label className="event-input-label" htmlFor="max_guests">
               MÁX. INVITADOS:
@@ -163,14 +173,10 @@ export default function CreateEvent() {
           </div>
           {/* Owner */}
           <div className="event-input-group" style={{ gridColumn: "1 / span 2" }}>
-            <label className="event-input-label">
+            <label className="event-input-label" htmlFor="owner_id">
               SELECCIONAR OWNER:
             </label>
-            {profile?.user_type === "admin" ? (
-              <OwnerSelector value={form.owner_id} onChange={handleChange} />
-            ) : (
-              <input type="hidden" name="owner_id" value={profile?.id} />
-            )}
+            <OwnerSelector value={form.owner_id} onChange={handleChange} />
           </div>
           {/* Descripción */}
           <div className="event-input-group" style={{ gridColumn: "1 / span 2" }}>
@@ -203,11 +209,17 @@ export default function CreateEvent() {
               Cancelar
             </button>
           </div>
+          {successMsg && (
+            <div className="msg-success" style={{ gridColumn: "1 / span 2" }}>
+              {successMsg}
+            </div>
+          )}
           {msg && (
             <div className="msg-error" style={{ gridColumn: "1 / span 2" }}>
               {msg}
             </div>
           )}
+
         </form>
       </section>
     </div>

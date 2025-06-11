@@ -5,23 +5,21 @@ import "../styles/OwnerSelector.css";
 export function OwnerSelector({ value, onChange }) {
   const [users, setUsers] = useState([]);
   const [showList, setShowList] = useState(false);
-  const selected = users.find(u => String(u.id) === String(value));
 
   useEffect(() => {
-    api.get("/users?type=user") // Asegúrate de que tu endpoint acepte filtro tipo de usuario
+    api.get("/users?type=user")
       .then(res => setUsers(res.data))
       .catch(() => setUsers([]));
   }, []);
 
   return (
-    <div className="input-group">
+    <div className="owner-selector-group">
       <button
         type="button"
-        className="btn-main event-btn-main"
-        style={{ width: "100%", marginBottom: ".7rem" }}
+        className="btn-main event-btn-main owner-selector-btn"
         onClick={() => setShowList(s => !s)}
       >
-        <span>+</span> AGREGAR OWNER
+        <span className="owner-btn-plus">+</span> AGREGAR OWNER
       </button>
       {showList && (
         <div className="owner-list-modal">
@@ -37,13 +35,13 @@ export function OwnerSelector({ value, onChange }) {
               <img src={u.profile_image || "/default-user.png"} alt="img" className="owner-img" />
               <div>
                 <b>{u.first_name} {u.last_name}</b>
-                <div style={{ fontSize: ".95em", color: "#555" }}>{u.email}</div>
+                <div>{u.email}</div>
               </div>
             </div>
           ))}
         </div>
       )}
-      {/* Datos informativos del owner seleccionado */}
+            {/* Datos informativos del owner seleccionado */}
       {selected && (
         <div className="owner-info-panel">
           <img src={selected.profile_image || "/default-user.png"} alt="perfil" className="owner-info-img" />

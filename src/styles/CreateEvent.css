@@ -68,6 +68,7 @@
 .event-textarea:focus {
   border-color: var(--color-primario);
 }
+
 .event-textarea {
   min-height: 56px;
   resize: vertical;
@@ -78,6 +79,7 @@
   display: flex;
   align-items: center;
 }
+
 .event-input-money-sign {
   position: absolute;
   left: 14px;
@@ -95,6 +97,7 @@
   justify-content: flex-end;
   margin-top: 1.2rem;
 }
+
 .event-btn-main, .event-btn-cancel {
   width: 170px;
 }
@@ -157,4 +160,43 @@
   text-align: center;
   font-family: var(--fuente-montserrat);
 }
+
+.owner-selector-btn {
+  min-height: 44px;
+  border-radius: 11px;
+  padding: .87rem 1.1rem;
+  font-family: var(--fuente-inter);
+  font-size: 1rem;
+  width: 100%;
+  border: 1.5px solid var(--color-secundario);
+  background: var(--color-terciario);
+  color: var(--color-white);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.owner-selector-btn:hover {
+  background: var(--color-hover);
+}
+
+.msg-success {
+  color: var(--color-primario);
+  margin-top: 1.25rem;
+  font-size: 1.11rem;
+  text-align: center;
+  font-family: var(--fuente-montserrat);
+  background: var(--color-cuaternario);
+  padding: 0.7em 1.1em;
+  border-radius: 7px;
+  border: 1.5px solid var(--color-primario);
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+
+
+
 
