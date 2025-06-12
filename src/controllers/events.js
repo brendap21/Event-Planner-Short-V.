@@ -73,17 +73,42 @@ exports.getById = async (req, res) => {
 
 // Actualizar evento
 exports.update = async (req, res) => {
-  try {
-    const { title, category_id, event_date, event_time, budget, description, max_guests } = req.body;
-    await pool.query(
-      `UPDATE events SET title=?, category_id=?, event_date=?, event_time=?, budget=?, description=?, max_guests=?
-       WHERE id=?`,
-      [title, category_id, event_date, event_time, budget, description, max_guests, req.params.id]
-    );
-    res.json({ message: 'Evento actualizado' });
-  } catch (err) {
-    res.status(500).json({ error: 'Error al actualizar evento.' });
+  const {
+    title,
+    category_id,
+    event_date,
+    event_time,
+    budget,
+    description,
+    max_guests,
+    owner_id,
+    status // <-- Acepta status
+  } = req.body;
+
+  const fields = [];
+  const values = [];
+
+  if (title !== undefined) { fields.push('title = ?'); values.push(title); }
+  if (category_id !== undefined) { fields.push('category_id = ?'); values.push(category_id); }
+  if (event_date !== undefined) { fields.push('event_date = ?'); values.push(event_date); }
+  if (event_time !== undefined) { fields.push('event_time = ?'); values.push(event_time); }
+  if (budget !== undefined) { fields.push('budget = ?'); values.push(budget); }
+  if (description !== undefined) { fields.push('description = ?'); values.push(description); }
+  if (max_guests !== undefined) { fields.push('max_guests = ?'); values.push(max_guests); }
+  if (owner_id !== undefined) { fields.push('owner_id = ?'); values.push(owner_id); }
+  if (status !== undefined) { fields.push('status = ?'); values.push(status); } // <-- Soporte para status
+
+  if (!fields.length) {
+    return res.status(400).json({ error: "No hay campos para actualizar" });
   }
+
+  values.push(req.params.id);
+
+  await pool.query(
+    `UPDATE events SET ${fields.join(', ')} WHERE id = ?`,
+    values
+  );
+  res.json({ message: "Evento actualizado" });
 };
 
 // Eliminar evento
