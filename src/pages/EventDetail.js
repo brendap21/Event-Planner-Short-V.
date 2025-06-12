@@ -3,13 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEvents } from '../contexts/EventContext';
 
-
 const EventDetail = () => {
   const { eventId } = useParams();
-  const { events, setEvents } = useEvents();
+  const id = parseInt(eventId, 10);
   const navigate = useNavigate();
+  const { events } = useEvents();
 
-  const event = events.find((event) => event.id === eventId);
+  const event = events.find(ev => ev.id === id);
 
   if (!event) {
     navigate('/events');
@@ -19,8 +19,12 @@ const EventDetail = () => {
   const [editedEvent, setEditedEvent] = useState(event);
 
   useEffect(() => {
-    setEditedEvent(event);
-  }, [event]);
+    if (events.length > 0 && !event) {
+      navigate('/events');
+    }
+  }, [events, event, navigate]);
+
+  if (events.length === 0 || !event) return null;
 
   const handleChange = (e) => {
     const { name, value } = e.target;

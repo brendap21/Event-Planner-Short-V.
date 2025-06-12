@@ -55,7 +55,7 @@ export default function CreateEvent() {
       setForm(initialState);
       // Espera 1.5 segundos y redirige al detalle del evento creado
       setTimeout(() => {
-        window.location.href = `/eventos/${res.data.id}`; // Ajusta la ruta si tu ruta real es diferente
+        window.location.href = `/event/${res.data.id}`; 
       }, 1500);
       if (profile?.user_type !== "admin") {
         setForm(f => ({ ...f, owner_id: profile?.id }));
