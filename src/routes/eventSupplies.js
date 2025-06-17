@@ -2,7 +2,7 @@
 const express = require('express');
 const router  = express.Router({ mergeParams: true });
 // ——— aquí ↓
-const ctrl    = require('../controllers/eventsupplies');
+const ctrl    = require('../controllers/eventSupplies');
 
 router.get('/',    ctrl.getAll);
 router.post('/',   ctrl.create);

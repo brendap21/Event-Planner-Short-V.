@@ -5,6 +5,7 @@ import api from '../api';
 import { useAuth } from '../contexts/AuthContext';
 import { CategorySelect } from '../components/CategorySelect';
 import { OwnerDisplay } from '../components/OwnerDisplay';
+import '../styles/EventDetail.css';
 
 export default function EventDetail() {
   const { eventId } = useParams();
@@ -22,12 +23,65 @@ export default function EventDetail() {
   const [archiving, setArchiving] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const [showGuests, setShowGuests] = useState(false);
+  const [showSupplies, setShowSupplies] = useState(false);
+  const [showNewSupplyForm, setShowNewSupplyForm] = useState(false);
+
   // --- Invitado UI ---
   const [newGuest, setNewGuest] = useState({ first_name: '', last_name: '' });
+  const [categories, setCategories] = useState([]);
 
   // --- Insumo UI ---
   const [supplySearch, setSupplySearch] = useState('');
   const [supplyQty, setSupplyQty] = useState(1);
+  const [newSupply, setNewSupply] = useState({
+    name: '',
+    description: '',
+    price: '',
+    category: ''
+  });
+
+  const handleAddSupply = async (supplyId, quantity) => {
+    const exists = supplies.find(s => s.supply_id === supplyId);
+    if (exists) {
+      await api.put(`/events/${eventId}/supplies/${exists.id}`, { quantity: exists.quantity + quantity });
+      setSupplies(supplies.map(s =>
+        s.supply_id === supplyId ? { ...s, quantity: s.quantity + quantity } : s
+      ));
+    } else {
+      const res = await api.post(`/events/${eventId}/supplies`, { supply_id: supplyId, quantity });
+
+      // 🔍 Nueva línea: obtener info completa del insumo
+      const fullSupply = await api.get(`/supplies/${supplyId}`);
+
+      setSupplies([
+        ...supplies,
+        {
+          ...fullSupply.data,
+          id: res.data.id,
+          supply_id: supplyId,
+          quantity
+        }
+      ]);
+    }
+  };
+
+
+  const handleCreateAndAddSupply = async () => {
+    const price = parseFloat(newSupply.price);
+    if (!newSupply.name || isNaN(price) || price <= 0) {
+      alert('Nombre y precio válido (> 0) son obligatorios.');
+      return;
+    }
+
+    const res = await api.post('/supplies', { ...newSupply, price });
+    setAllSupplies([...allSupplies, res.data]);
+    await handleAddSupply(res.data.id, 1);
+    setNewSupply({ name: '', description: '', price: '', category: '' });
+  };
+
+
+
 
   // Cargar datos del evento
   useEffect(() => {
@@ -62,6 +116,12 @@ export default function EventDetail() {
     fetchData();
     return () => { mounted = false; };
   }, [eventId, navigate]);
+  useEffect(() => {
+    api.get('/categories')
+      .then(r => setCategories(r.data))
+      .catch(() => setCategories([]));
+  }, []);
+
 
   // Cargar invitados
   useEffect(() => {
@@ -75,17 +135,7 @@ export default function EventDetail() {
       });
   }, [event, eventId]);
 
-  // Cargar insumos del evento
-  useEffect(() => {
-    if (!event) return;
-    api.get(`/events/${eventId}/supplies`)
-      .then(r => setSupplies(r.data))
-      .catch(err => {
-        if (err.response && err.response.status === 404) {
-          setSupplies([]);
-        }
-      });
-  }, [event, eventId]);
+
 
   // Cargar todos los insumos disponibles (para agregar)
   useEffect(() => {
@@ -97,6 +147,31 @@ export default function EventDetail() {
         }
       });
   }, []);
+  // Cargar insumos del evento y combinarlos con info completa
+  useEffect(() => {
+    if (!event || allSupplies.length === 0) return;
+    api.get(`/events/${eventId}/supplies`)
+      .then(r => {
+        const enriched = r.data.map(es => {
+          const full = allSupplies.find(s => s.id === es.supply_id);
+          return {
+            ...es,
+            name: full?.name || es.name,
+            description: full?.description || es.description,
+            price: full?.price || es.price,
+            category: full?.category || 'sin categoría'
+          };
+        });
+        setSupplies(enriched);
+      })
+      .catch(err => {
+        if (err.response && err.response.status === 404) {
+          setSupplies([]);
+        }
+      });
+  }, [event, eventId, allSupplies]);
+
+
 
   if (!event) return <div>Cargando evento...</div>;
 
@@ -118,20 +193,7 @@ export default function EventDetail() {
   };
 
   // --- Insumos ---
-  const handleAddSupply = async (supplyId, quantity) => {
-    const exists = supplies.find(s => s.supply_id === supplyId);
-    if (exists) {
-      // Actualiza cantidad
-      await api.put(`/events/${eventId}/supplies/${exists.id}`, { quantity: exists.quantity + quantity });
-      setSupplies(supplies.map(s =>
-        s.supply_id === supplyId ? { ...s, quantity: s.quantity + quantity } : s
-      ));
-    } else {
-      const res = await api.post(`/events/${eventId}/supplies`, { supply_id: supplyId, quantity });
-      const supply = allSupplies.find(s => s.id === supplyId);
-      setSupplies([...supplies, { ...supply, id: res.data.id, quantity }]);
-    }
-  };
+
   const handleRemoveSupply = async (eventSupplyId) => {
     await api.delete(`/events/${eventId}/supplies/${eventSupplyId}`);
     setSupplies(supplies.filter(s => s.id !== eventSupplyId));
@@ -207,14 +269,14 @@ export default function EventDetail() {
           {editing ? (
             <input type="date" name="event_date" value={form.event_date} onChange={handleFormChange} />
           ) : (
-            event.event_date
+            event.event_date.toString().split('T')[0].replace(/-/g, '/')
           )}
           {' '}
           <b>Hora:</b>{' '}
           {editing ? (
             <input type="time" name="event_time" value={form.event_time} onChange={handleFormChange} />
           ) : (
-            event.event_time
+            event.event_time?.slice(0, 5) || 'No especificada'
           )}
         </div>
         {/* Owner */}
@@ -257,101 +319,130 @@ export default function EventDetail() {
             )}
           </div>
         </div>
-        {/* Lista de invitados */}
+        {/* INVITADOS */}
         <div style={{ marginBottom: 18 }}>
-          <b>Lista de invitados:</b>
-          <ul>
-            {guests.map(g => (
-              <li key={g.id}>
-                {g.first_name} {g.last_name}
-                {isOwner && (
-                  <button style={{ marginLeft: 8 }} onClick={() => handleRemoveGuest(g.id)}>Eliminar</button>
-                )}
-              </li>
-            ))}
-          </ul>
-          {isOwner && guests.length < event.max_guests && (
-            <form
-              onSubmit={e => {
-                e.preventDefault();
-                if (!newGuest.first_name || !newGuest.last_name) return;
-                handleAddGuest(newGuest);
-                setNewGuest({ first_name: '', last_name: '' });
-              }}
-              style={{ display: 'flex', gap: 8, marginTop: 8 }}
-            >
-              <input
-                placeholder="Nombre"
-                value={newGuest.first_name}
-                onChange={e => setNewGuest(g => ({ ...g, first_name: e.target.value }))
-                }
-                required
-              />
-              <input
-                placeholder="Apellido"
-                value={newGuest.last_name}
-                onChange={e => setNewGuest(g => ({ ...g, last_name: e.target.value }))
-                }
-                required
-              />
-              <button type="submit">Agregar</button>
-            </form>
-          )}
-        </div>
-        {/* Lista de insumos */}
-        <div style={{ marginBottom: 18 }}>
-          <b>Lista de insumos:</b>
-          <ul>
-            {supplies.map(s => (
-              <li key={s.id}>
-                <b>{s.name}</b> ({s.category}) - {s.description} | ${s.price} x {s.quantity}
-                {isOwner && (
-                  <button style={{ marginLeft: 8 }} onClick={() => handleRemoveSupply(s.id)}>Eliminar</button>
-                )}
-              </li>
-            ))}
-          </ul>
-          {isOwner && (
-            <form
-              onSubmit={e => {
-                e.preventDefault();
-                const supply = allSupplies.find(s => String(s.id) === String(supplySearch));
-                if (!supply) return;
-                handleAddSupply(supply.id, Number(supplyQty));
-                setSupplySearch('');
-                setSupplyQty(1);
-              }}
-              style={{ display: 'flex', gap: 8, marginTop: 8 }}
-            >
-              <select
-                value={supplySearch}
-                onChange={e => setSupplySearch(e.target.value)}
-                required
-              >
-                <option value="">Selecciona insumo...</option>
-                {allSupplies.map(s => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} (${s.price}) [{s.category}]
-                  </option>
+          <b style={{ cursor: 'pointer' }} onClick={() => setShowGuests(!showGuests)}>
+            {showGuests ? '- INVITADOS:' : '+ INVITADOS:'}
+          </b>
+          {showGuests && (
+            <>
+              <ul>
+                {guests.map(g => (
+                  <li key={g.id}>
+                    {g.first_name} {g.last_name}
+                    {isOwner && (
+                      <button style={{ marginLeft: 8 }} onClick={() => handleRemoveGuest(g.id)}>Eliminar</button>
+                    )}
+                  </li>
                 ))}
-              </select>
-              <input
-                type="number"
-                min={1}
-                value={supplyQty}
-                onChange={e => setSupplyQty(e.target.value)}
-                style={{ width: 60 }}
-                required
-              />
-              <button type="submit">Agregar</button>
-            </form>
+              </ul>
+              {isOwner && guests.length < event.max_guests && (
+                <form
+                  onSubmit={e => {
+                    e.preventDefault();
+                    if (!newGuest.first_name || !newGuest.last_name) return;
+                    handleAddGuest(newGuest);
+                    setNewGuest({ first_name: '', last_name: '' });
+                  }}
+                  style={{ display: 'flex', gap: 8, marginTop: 8 }}
+                >
+                  <input placeholder="Nombre" value={newGuest.first_name} onChange={e => setNewGuest(g => ({ ...g, first_name: e.target.value }))} required />
+                  <input placeholder="Apellido" value={newGuest.last_name} onChange={e => setNewGuest(g => ({ ...g, last_name: e.target.value }))} required />
+                  <button type="submit">+</button>
+                </form>
+              )}
+            </>
           )}
         </div>
-        {/* Enlace a lista de compras */}
+        <br />
+     <hr />
+
+        {/* INSUMOS */}
+        <div style={{ marginBottom: 18 }}>
+          <b style={{ cursor: 'pointer' }} onClick={() => setShowSupplies(!showSupplies)}>
+            {showSupplies ? '- INSUMOS:' : '+ INSUMOS:'}
+          </b>
+          {showSupplies && (
+            <>
+              <ul>
+                {supplies.map(s => {
+                  const full = allSupplies.find(x => x.id === s.supply_id);
+                  return (
+                    <li key={s.id} className="supply-item">
+                      <span className="supply-name">{full?.name || s.name}</span>
+                      <span className="supply-description">{s.description || 'Sin descripción'}</span>
+                      <span className="supply-price">${s.price}</span>
+                      <span className="supply-quantity">× {s.quantity}</span>
+                      {isOwner && (
+                        <button className="remove-button" onClick={() => handleRemoveSupply(s.id)}>Eliminar</button>
+                      )}
+                    </li>
+
+                  );
+                })}
+              </ul>
+
+              {/* Formulario para agregar insumo existente */}
+              {isOwner && (
+                <form
+                  onSubmit={e => {
+                    e.preventDefault();
+                    const supply = allSupplies.find(s => String(s.id) === String(supplySearch));
+                    if (!supply) return;
+                    handleAddSupply(supply.id, Number(supplyQty));
+                    setSupplySearch('');
+                    setSupplyQty(1);
+                  }}
+                  style={{ display: 'flex', gap: 8, marginTop: 8 }}
+                >
+                  <select value={supplySearch} onChange={e => setSupplySearch(e.target.value)} required>
+                    <option value="">Selecciona insumo...</option>
+                    {allSupplies.map(s => (
+                      <option key={s.id} value={s.id}>{s.name} (${s.price}) [{s.category}]</option>
+                    ))}
+                  </select>
+                  <input type="number" min={1} value={supplyQty} onChange={e => setSupplyQty(e.target.value)} style={{ width: 60 }} required />
+                  Cantidad
+                  <button type="submit">+</button>
+                </form>
+              )}
+
+              {/* Toggle para mostrar formulario nuevo */}
+              {isOwner && (
+                <div style={{ marginTop: 8 }}>
+                  <button onClick={() => setShowNewSupplyForm(!showNewSupplyForm)}>
+                    {showNewSupplyForm ? 'Cancelar nuevo insumo' : 'Agregar nuevo insumo'}
+                  </button>
+                </div>
+              )}
+
+              {/* Formulario nuevo insumo */}
+              {showNewSupplyForm && isOwner && (
+                <div style={{ marginTop: 12, padding: 12, background: '#f9f9f9', borderRadius: 8 }}>
+                  <form
+                    onSubmit={e => {
+                      e.preventDefault();
+                      handleCreateAndAddSupply();
+                    }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+                  >
+                    <input placeholder="Nombre" value={newSupply.name} onChange={e => setNewSupply(s => ({ ...s, name: e.target.value }))} required />
+                    <input placeholder="Descripción" value={newSupply.description} onChange={e => setNewSupply(s => ({ ...s, description: e.target.value }))} />
+                    <input type="number" placeholder="Precio" value={newSupply.price} onChange={e => setNewSupply(s => ({ ...s, price: e.target.value }))} required />
+                    <input placeholder="Categoría" value={newSupply.category} onChange={e => setNewSupply(s => ({ ...s, category: e.target.value }))} />
+                    <button type="submit">Crear y agregar</button>
+                  </form>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
         <div style={{ marginBottom: 18 }}>
           <Link to={`/event/${eventId}/shopping-list`}>Ver lista de compras</Link>
         </div>
-        {/* Botones de edición y archivado */}
+
+        {/* Botones editar y archivar */}
         {isOwner && (
           <div style={{ marginTop: 18 }}>
             {!editing ? (
@@ -362,11 +453,7 @@ export default function EventDetail() {
                 <button onClick={handleCancelEdit}>Cancelar</button>
               </>
             )}
-            <button
-              style={{ marginLeft: 12 }}
-              onClick={handleArchiveToggle}
-              disabled={archiving}
-            >
+            <button style={{ marginLeft: 12 }} onClick={handleArchiveToggle} disabled={archiving}>
               {event.status === 'archived' ? 'Desarchivar Evento' : 'Archivar Evento'}
             </button>
           </div>

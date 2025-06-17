@@ -30,7 +30,13 @@ app.use('/api', verifyToken);
 app.use('/api/users',      require(path.join(SRC, 'routes', 'users')));
 app.use('/api/categories', require(path.join(SRC, 'routes', 'categories')));
 app.use('/api/events',     require(path.join(SRC, 'routes', 'events')));
+app.use('/api/events/:eventId/guests', require(path.join(SRC, 'routes', 'guests')));
+app.use('/api/events/:eventId/supplies', require(path.join(SRC, 'routes', 'eventSupplies')));
+
+
 app.use('/api/supplies',   require(path.join(SRC, 'routes', 'supplies')));
+
+
 
 const PORT = process.env.SERVER_PORT || 5000;
 app.listen(PORT, () => console.log(`Server escuchando en http://localhost:${PORT}`));

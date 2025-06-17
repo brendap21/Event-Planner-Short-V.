@@ -41,14 +41,37 @@ exports.create = async (req, res) => {
 };
 
 // Traer todos los eventos (ejemplo básico)
+// Traer todos los eventos filtrados por usuario
 exports.getAll = async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM events WHERE status = "active"');
+    const userEmail = req.user.email;
+
+    // Buscar al usuario en la base de datos
+    const [userRows] = await pool.query('SELECT id, user_type FROM users WHERE email = ?', [userEmail]);
+
+    if (!userRows.length) {
+      return res.status(404).json({ error: 'Usuario no encontrado.' });
+    }
+
+    const { id: userId, user_type } = userRows[0];
+
+    let query = 'SELECT * FROM events WHERE status = "active"';
+    let params = [];
+
+    // Si no es admin, agregar condición de dueño
+    if (user_type !== 'admin') {
+      query += ' AND owner_id = ?';
+      params.push(userId);
+    }
+
+    const [rows] = await pool.query(query, params);
     res.json(rows);
   } catch (err) {
+    console.error('Error al obtener eventos:', err);
     res.status(500).json({ error: 'Error al obtener eventos.' });
   }
 };
+
 
 // Traer eventos archivados
 exports.getArchived = async (req, res) => {

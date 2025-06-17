@@ -17,20 +17,55 @@ export function EventProvider({ children }) {
 
   useEffect(() => {
     if (!currentUser) return;
+
     const fetchEvents = async () => {
       try {
-        // Si usas proxy en package.json, /api/events ya apunta a tu backend
+        const token = await currentUser.getIdToken();
+
+        // 1. Cargar eventos (igual que antes)
         const res = await api.get('/events', {
           headers: {
-            // si tu API valida token
-            Authorization: `Bearer ${await currentUser.getIdToken()}`
+            Authorization: `Bearer ${token}`
           }
         });
-        setEvents(res.data);
+
+        const rawEvents = res.data;
+        setEvents(rawEvents); // ⚠️ Se mantiene tal cual para compatibilidad
+
+        // 2. Enriquecer eventos con categoría
+        const enriched = await Promise.all(
+          rawEvents.map(async (event) => {
+            try {
+              const catRes = await api.get(`/categories/${event.category_id}`, {
+                headers: {
+                  Authorization: `Bearer ${token}`
+                }
+              });
+
+              return {
+                ...event,
+                category: catRes.data
+              };
+            } catch (error) {
+              console.warn(`No se pudo cargar categoría del evento ${event.id}`);
+              return {
+                ...event,
+                category: {
+                  name: 'Sin categoría',
+                  color: '#999'
+                }
+              };
+            }
+          })
+        );
+
+        setEvents(enriched); // ← sobrescribe con eventos enriquecidos
+
       } catch (err) {
         console.error('Error fetching events:', err);
       }
     };
+
     fetchEvents();
   }, [currentUser]);
 
