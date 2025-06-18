@@ -234,7 +234,7 @@ export default function EventDetail() {
 
   return (
     <div className="main-content" style={{ maxWidth: 900, margin: '0 auto' }}>
-      <h1>Detalles del Evento</h1>
+      <h1>DETALLES DEL EVENTO</h1>
       <div style={{ background: '#fff', borderRadius: 12, padding: 24, boxShadow: '0 4px 18px #0001' }}>
         {/* Título */}
         <div style={{ marginBottom: 12 }}>
