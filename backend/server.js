@@ -1,3 +1,4 @@
+// backend/server.js
 require('dotenv').config();
 const path = require('path');
 const express = require('express');
@@ -6,22 +7,25 @@ const verifyToken = require('./verifyToken');
 
 const app = express();
 
+// CORS
 app.use(
   cors({
-    origin: '*', // Puedes ajustar a tu frontend si deseas más seguridad
+    origin: '*', // Puedes reemplazar con tu frontend si necesitas seguridad
   })
 );
 
+// Body parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-const SRC = path.resolve(__dirname);
+// PATH a las rutas
+const SRC = path.resolve(__dirname, '../src');
 
 // Rutas públicas
 app.use('/api/contacts', require(path.join(SRC, 'routes', 'contacts')));
 app.use('/api/users', require(path.join(SRC, 'routes', 'users')));
 
-// Middleware de verificación (autenticación)
+// Middleware de autenticación
 app.use(verifyToken);
 
 // Rutas protegidas
@@ -31,15 +35,17 @@ app.use('/api/supplies', require(path.join(SRC, 'routes', 'supplies')));
 app.use('/api/events/:eventId/guests', require(path.join(SRC, 'routes', 'guests')));
 app.use('/api/events/:eventId/supplies', require(path.join(SRC, 'routes', 'eventSupplies')));
 
-// Sirve el frontend compilado (React)
-if (process.env.NODE_ENV === 'production') {
-  const publicPath = path.resolve(__dirname, '../build');
-  app.use(express.static(publicPath));
+// SERVIR EL FRONTEND COMPILADO (React)
+const buildPath = path.resolve(__dirname, '../build');
+app.use(express.static(buildPath));
 
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(publicPath, 'index.html'));
-  });
-}
+// Cualquier otra ruta → index.html del frontend (React Router)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(buildPath, 'index.html'));
+});
 
+// PUERTO
 const PORT = process.env.SERVER_PORT || process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor corriendo en puerto ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Servidor Express corriendo en http://localhost:${PORT}`);
+});

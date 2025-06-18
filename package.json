@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node backend/server.js",
     "build": "react-scripts build",
-    "postinstall": "npm run build"
+    "test": "react-scripts test --passWithNoTests",
+    "postinstall": "npm install --prefix backend && npm run build"
   },
   "keywords": [
     "event",
