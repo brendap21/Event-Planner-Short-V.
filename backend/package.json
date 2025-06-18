@@ -16,6 +16,7 @@
     "ee-first": "^1.1.1",
     "express": "^5.1.0",
     "firebase-admin": "^13.3.0",
+    "mssql": "^11.0.1",
     "mysql2": "^3.14.1"
   }
 }

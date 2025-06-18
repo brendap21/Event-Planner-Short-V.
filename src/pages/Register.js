@@ -155,15 +155,14 @@ const Register = () => {
     setError('');
 
     try {
-      // 1. Registro en Firebase
       const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
       const user = userCredential.user;
       const token = await user.getIdToken();
 
-      // 2. Configura axios con el token
+      // Autorización con token de Firebase
       api.defaults.headers.common.Authorization = `Bearer ${token}`;
 
-      // 3. POST a /api/users con todos los datos y el UID
+      // Registro en tu backend con los datos del usuario
       await api.post('/users', {
         firebase_uid: user.uid,
         first_name: formData.name,
@@ -180,11 +179,8 @@ const Register = () => {
       });
 
       setSuccessMessage('¡Registro exitoso! Bienvenido a EventPlanner+.');
-      setTimeout(() => {
-        navigate('/');
-      }, 1500);
-
-      setFormData({ /* limpia form */ });
+      setTimeout(() => navigate('/'), 1500);
+      setFormData({}); // limpia campos
       setError('');
     } catch (err) {
       console.error('Error al registrar el usuario:', err);
