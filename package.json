@@ -2,9 +2,9 @@
   "name": "event-planner-plus",
   "version": "1.0.0",
   "description": "Una aplicación web para la planificación de eventos",
-  "main": "backend/server.js",
+  "main": "src/index.js",
   "scripts": {
-    "start": "node backend/server.js",
+    "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --passWithNoTests",
     "postinstall": "npm install --prefix backend && npm run build"
